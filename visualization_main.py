@@ -8,7 +8,7 @@ import plotly.offline as pyo
 import pandas as pd
 
 
-source = "FERMISURF_Au_fcc.bxsf"
+source = "FERMISURF_Po_sc.bxsf"
 data = read_energy_numbers(source)
 energy = data[0]
 fermi_energy = data[1]
@@ -29,7 +29,6 @@ all_meshs = create_mesh(rez_base_vect, grid_size, brillouin_zone)
 new_mesh = all_meshs[0]
 new_mols = all_meshs[1]
 
-print("done")
 
 for columnName in energy.columns:
     placeholder_energy = []
@@ -39,13 +38,14 @@ for columnName in energy.columns:
             for k in range(grid_size[2]):
                 #energy_list = energy[columnName].tolist()
                 placeholder_energy.append(energy[columnName][int(new_mols["molgrid"][i][j][k])])
-                new_mols["molgrid"][i][j][k] = energy["Band 4"][p]
-                if 0.01 >= energy["Band 4"][p] >= -0.01:
-                    new_mols["molgrid"][i][j][k] = 0
+                if columnName == "Band 2":
+                    new_mols["molgrid"][i][j][k] = energy["Band 3"][int(new_mols["molgrid"][i][j][k])]
+                #    if 0.01 >= energy["Band 3"][p] >= -0.01:
+                #        new_mols["molgrid"][i][j][k] = 0
                 p += 1
     energy[columnName] = placeholder_energy
     print("done")
-
+energy_values = new_mols["molgrid"]
 # extract all k_points at fermi_energy
 # iterate through energy bands:
 k_points_dict = {}
@@ -75,8 +75,8 @@ for key, value in k_points_dict.items():
             # print(k_points_dict[key])
             point_index.append(value[point])
 
-    for index in point_index:
-        k_points_dict[key].remove(index)
+    #for index in point_index:
+        #k_points_dict[key].remove(index)
 
     # plot of fermi_surfaces for each band
 
@@ -188,14 +188,13 @@ from skimage import measure
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-grid_size = 41
 #energy_values = np.random.random((grid_size, grid_size, grid_size))  # Replace with your actual energy values
-energy_values = new_mols["molgrid"]
+grid_size = 41
 # Define the isovalue for the surface (this value should represent the energy level that forms the surface)
 isovalue = 0.0  # Adjust this value based on your data
 
 # Apply the Marching Cubes algorithm
-vertices, faces, normals, values = measure.marching_cubes(energy_values)
+vertices, faces, normals, values = measure.marching_cubes(energy_values, level=isovalue, spacing=(1.0, 1.0, 1.0), gradient_direction='ascent')
 
 # Plot the resulting surface
 fig = plt.figure(figsize=(10, 7))
