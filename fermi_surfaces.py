@@ -1,6 +1,9 @@
+import math
+
 import numpy as np
 import trimesh
 from skimage import measure
+from pymatgen.core import Lattice
 
 
 def fraction(rez_lattice_vect, s_grid_size):
@@ -37,10 +40,16 @@ def create_mesh(rez_lattice, grid_size, brillouin_zone):
     later on -> very important for fermi_surface shape
 
     :param brillouin_zone: facets and vertices of the first BZ are needed
-    :param rez_lattice: koordinates for the reciprocal lattice vectors (list of three 3 Dimensional koordinates)
+    :param direct_lattice: koordinates for the reciprocal lattice vectors (list of three 3 Dimensional koordinates)
     :param grid_size: number of datapoints the grid should have (list of 3 number for each lattice vector)
     :return: standard mesh and mol mesh
     """
+
+    reciprocal_lattice = Lattice([rez_lattice[0], rez_lattice[1], rez_lattice[2]])
+
+    # Umwandlung in das direkte Gitter
+    direct_lattice = reciprocal_lattice.reciprocal_lattice.matrix
+
     grid_size = [int(grid_size_n) for grid_size_n in grid_size]
     mesh = []
 
@@ -70,9 +79,9 @@ def create_mesh(rez_lattice, grid_size, brillouin_zone):
     for i in range(len(brillouin_zone[1])):  # facet
         for j in range(len(brillouin_zone[1][i])):  # vertex
             for k in range(3):  # finding real min and max vector of fermi_surface
-                a = (brillouin_zone[1][i][j][0] * rez_lattice[k][0]
-                     + brillouin_zone[1][i][j][1] * rez_lattice[k][1]
-                     + brillouin_zone[1][i][j][2] * rez_lattice[k][2])
+                a = (brillouin_zone[1][i][j][0] * direct_lattice[k][0]
+                     + brillouin_zone[1][i][j][1] * direct_lattice[k][1]
+                     + brillouin_zone[1][i][j][2] * direct_lattice[k][2])
                 if a < frmin[k]:
                     frmin[k] = a
                 if a > frmax[k]:
@@ -85,25 +94,22 @@ def create_mesh(rez_lattice, grid_size, brillouin_zone):
         frImax[k] = float(Imax[k]) / grid_size_minus_one[k]
 
     # creating the mols dictionary
-    mols = {'i': Imax[0] - Imin[0] + 1,
-            'j': Imax[1] - Imin[1] + 1,
-            'k': Imax[2] - Imin[2] + 1,
-            'lowcoor': [0, 0, 0],
+    mols = {'i': Imax[0] - Imin[0] + 1, 'j': Imax[1] - Imin[1] + 1, 'k': Imax[2] - Imin[2] + 1, 'lowcoor': [0, 0, 0],
             "molgrid": xc_malloc_tensor3f(grid_size[0], grid_size[1], grid_size[2])}
-
+    mols["molgrid"] = xc_malloc_tensor3f(mols["i"], mols["j"], mols["k"])
     for k in range(3):
-        mols['lowcoor'][k] = (frImin[0] * rez_lattice[k][0] +
-                              frImin[1] * rez_lattice[k][1] +
-                              frImin[2] * rez_lattice[k][2])
+        mols['lowcoor'][k] = (frImin[0] * direct_lattice[k][0] +
+                              frImin[1] * direct_lattice[k][1] +
+                              frImin[2] * direct_lattice[k][2])
         # for j in range(3):
         #    mols['vec'][k][j] = (frImax[k] - frImin[k]) * rez_lattice[k][j]
         #    mols['isoexpand']['rep_vec'][k][j] = rez_lattice[k][
 
-    for i1, i in enumerate(range(int(Imin[0] / 2), int(Imax[0] / 2) + 1)):
+    for i1, i in enumerate(range(int(Imin[0]), int(Imax[0]) + 1)):
         ii = i if i >= 0 else grid_size_minus_one[0] + i
-        for j1, j in enumerate(range(int(Imin[1] / 2), int(Imax[1] / 2) + 1)):
+        for j1, j in enumerate(range(int(Imin[1]), int(Imax[1]) + 1)):
             jj = j if j >= 0 else grid_size_minus_one[1] + j
-            for k1, k in enumerate(range(int(Imin[2] / 2), int(Imax[2] / 2) + 1)):
+            for k1, k in enumerate(range(int(Imin[2]), int(Imax[2]) + 1)):
                 kk = k if k >= 0 else grid_size_minus_one[2] + k
                 mols['molgrid'][i1][j1][k1] = band_grid[ii, jj, kk]
     return mesh, mols
@@ -225,3 +231,27 @@ def check_fermi_surface(energies, fermi_energy):
             index_for_k_position.append(i)
         i += 1
     return index_for_k_position
+
+
+def marching_cubes_clip(rez_vec, facets, vertices, brillouin_zone_object, grid_size):
+
+    ### not in use, different approach
+    vertices = vertices.tolist()
+    facets = facets.tolist()
+    j = 0
+    for i, vertex in enumerate(vertices):  # scale mesh to first BZ
+        vertex[0] = vertex[0] / grid_size * np.sqrt(rez_vec[0][0] ** 2 + rez_vec[0][1] ** 2 + rez_vec[0][2] ** 2)
+        vertex[1] = vertex[1] / grid_size * np.sqrt(rez_vec[0][0] ** 2 + rez_vec[0][1] ** 2 + rez_vec[0][2] ** 2)
+        vertex[2] = vertex[2] / grid_size * np.sqrt(rez_vec[0][0] ** 2 + rez_vec[0][1] ** 2 + rez_vec[0][2] ** 2)
+        vertices[i] = vertex
+        if brillouin_zone_object.contains([vertex]):
+            pass
+        else:
+            #facets = np.delete(facets, math.ceil(i / 3))  # round up to next integer, so that the right facet is deleted
+            #vertices = np.delete(vertices, i)
+            for k, facet in enumerate(facets):
+                if (facet[0] or facet[1] or facet[2]) == i:
+                    del facets[k]
+            del facets[math.ceil((i-j) / 3)]
+            del vertices[i-j]
+    return vertices, facets
