@@ -1,13 +1,13 @@
 import plotly.graph_objects as go
 from brilouin_zone import first_bz
-from fermi_surfaces import create_mesh, brillouin_intersect_mesh, marching_cubes_clip, check_fermi_surface
+from fermi_surfaces import create_mesh, brillouin_intersect_mesh, marching_cubes_clip, check_fermi_surface, create_basevect_mesh
 from input import read_energy_numbers
 import numpy as np
 from scipy.spatial import Delaunay
 import plotly.offline as pyo
 import pandas as pd
 
-source = "FERMISURF_Po_sc.bxsf"
+source = "FERMISURF_Au_fcc.bxsf"
 data = read_energy_numbers(source)
 energy = data[0]
 fermi_energy = data[1]
@@ -32,21 +32,18 @@ new_rez_base_vect[1] *= 35
 new_rez_base_vect[2] *= 35
 big_bz = []
 big_bz.extend(first_bz(new_rez_base_vect))
-print(big_bz[0][0])
-for i, vertex_lists in enumerate(big_bz[1]):
-    for j, vertex_list in enumerate(vertex_lists):
-        big_bz[1][i][j] += 0
-
-
 
 new_big_bz_object = brillouin_intersect_mesh(big_bz[1])
-new_big_bz_object.apply_translation([40,40,40])
+new_big_bz_object.apply_translation([40, 40, 40])
 
-# create standard mesh
+# create standard mesh and mol mesh and basevect_mesh
 
 all_meshs = create_mesh(rez_base_vect, grid_size, brillouin_zone)
 new_mesh = all_meshs[0]  # mesh that refers to real 1. BZ
 new_mols = all_meshs[1]
+
+new_basevect_mesh = create_basevect_mesh(rez_base_vect, grid_size)
+
 mc_energy_values_list = []
 new_mols_helper = []
 
@@ -56,25 +53,15 @@ for columnName in energy.columns:
     if columnName == "Band 4":
         placeholder_energy = []
         new_mols_helper = deepcopy(new_mols["molgrid"])
-        p = 0
         for i in range(81):
             for k in range(81):
                 for j in range(81):
                     # energy_list = energy[columnName].tolist()
-                    #placeholder_energy.append(energy[columnName][int(new_mols["molgrid"][i][j][k])])
-
-                    #if fermi_energy - 0.01 <= energy[columnName][int(new_mols["molgrid"][i][j][k])] <= fermi_energy + 0.01:
-                    if False:
-                        if p >= grid_size[0]*grid_size[1]*grid_size[1]:
-                            p = 0
-                        if new_big_bz_object.contains([[i, j, k]]):
-                            new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
-                        else:
-                            new_mols_helper[i][j][k] = 10
-
-                    else:
+                    if new_big_bz_object.contains([[i,j,k]]):
                         new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
-                    p += 1
+                    else:
+                        new_mols_helper[i][j][k] = 10
+
 
     # energy[columnName] = placeholder_energy
     print("done")
@@ -123,46 +110,10 @@ for key, value in k_points_dict.items():
 from scipy.interpolate import Rbf
 import plotly.io as pio
 
-"""
-
-x = [value[0] for value in k_points_dict["Band 4"]]
-y = [value[1] for value in k_points_dict["Band 4"]]
-z = [value[2] for value in k_points_dict["Band 4"]]
-
-X,Y = np.meshgrid(x,y)
-
-# Convert spherical coordinates to Cartesian coordinates
-
-# Create the 3D mesh plot
-fig = go.Figure(data=[go.Mesh3d(
-    x=X,
-    y=Y,
-    z=z,
-    color='lightblue',
-    opacity=0.50
-
-)])
-
-# Update the layout
-fig.update_layout(
-    scene=dict(
-        xaxis_title='X Axis',
-        yaxis_title='Y Axis',
-        zaxis_title='Z Axis',
-    ),
-    title='Irregular Sphere 3D Mesh Plot',
-    autosize=True
-)
-
-# Show the plot
-fig.show()
-
-
-
-
 
 # Visualization
 # visualization of the brillouin_zone
+"""
 
 # Create a 3D scatter plot
 scatter_BZ = go.Scatter3d(
@@ -229,26 +180,28 @@ isovalue = 0.0  # Adjust this value based on your data
 vertices, faces, normals, values = measure.marching_cubes(new_mols_helper, level=isovalue)
 # vertices, faces = marching_cubes_clip(rez_base_vect, faces, vertices, mew_brillouin_zone_object, grid_size)
 
+test_vertices = deepcopy(vertices)
+
+for i, vertex in enumerate(test_vertices):
+    p = int(round(vertex[2])) + int(round(vertex[1])*grid_size) + int(round(vertex[0])*grid_size**2)
+    test_vertices[i] = new_basevect_mesh[p]
+
+
 #print(faces)
 # Plot the resulting surface
 fig = plt.figure(figsize=(10, 7))
 ax = fig.add_subplot(111, projection='3d')
 
 # Create a Poly3DCollection from the vertices and faces
-mesh = Poly3DCollection(vertices[faces], alpha=0.7)
+mesh = Poly3DCollection(test_vertices[faces], alpha=0.7)
 mesh.set_facecolor('cyan')
 mesh.set_edgecolor('k')
 ax.add_collection3d(mesh)
 
 # Set plot limits
 
-ax.set_xlim(0, 81 - 1)
-ax.set_ylim(0, 81 - 1)
-ax.set_zlim(0, 81 - 1)
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+ax.set_zlim(0, 1)
 
-"""
-ax.set_xlim(0, rez_base_vect[0])
-ax.set_ylim(0, rez_base_vect[0])
-ax.set_zlim(0, rez_base_vect[0])
-"""
 plt.show()

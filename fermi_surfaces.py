@@ -33,6 +33,21 @@ def xc_malloc_tensor3f(x, y, z):
     return np.zeros((x, y, z), dtype=float)
 
 
+def create_basevect_mesh(rez_lattice, grid_size):
+    grid_size = [int(2*grid_size_n-1) for grid_size_n in grid_size]
+    mesh = []
+
+    fraction1 = fraction(rez_lattice[1], grid_size[1])  # for generating basic mesh
+    fraction2 = fraction(rez_lattice[2], grid_size[2])
+
+    for i in range(0, grid_size[0]):
+        for j in range(0, grid_size[1]):
+            for k in range(0, grid_size[2]):
+                v = np.array(rez_lattice[0]) / grid_size[0] * i + fraction1[j] + fraction2[k]
+                mesh.append(v)
+    return mesh
+
+
 def create_mesh(rez_lattice, grid_size, brillouin_zone):
     """
     creates a mesh within the reciprocal unit cell for any reciprocal lattice
