@@ -24,7 +24,7 @@ z = brillouin_zone[0][2]
 
 # create 3d object of the first BZ
 mew_brillouin_zone_object = brillouin_intersect_mesh(brillouin_zone[1])
-
+mew_brillouin_zone_object.apply_translation([0.5, 0.5, 0.5])
 # big BZ:
 new_rez_base_vect = np.array(rez_base_vect)
 new_rez_base_vect[0] *= 35
@@ -57,10 +57,8 @@ for columnName in energy.columns:
             for k in range(81):
                 for j in range(81):
                     # energy_list = energy[columnName].tolist()
-                    if new_big_bz_object.contains([[i,j,k]]):
-                        new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
-                    else:
-                        new_mols_helper[i][j][k] = 10
+                    new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
+
 
 
     # energy[columnName] = placeholder_energy
@@ -185,6 +183,39 @@ test_vertices = deepcopy(vertices)
 for i, vertex in enumerate(test_vertices):
     p = int(round(vertex[2])) + int(round(vertex[1])*grid_size) + int(round(vertex[0])*grid_size**2)
     test_vertices[i] = new_basevect_mesh[p]
+
+new_vertices = []
+for vertex in test_vertices:
+    if mew_brillouin_zone_object.contains([vertex]):
+        new_vertices.append(vertex)
+x=[value[0] for value in new_vertices]
+y=[value[1] for value in new_vertices]
+z=[value[2] for value in new_vertices]
+
+fig = go.Figure(data=[go.Scatter3d(
+    x=x,
+    y=y,
+    z=z,
+    mode='markers',
+    marker=dict(
+        size=5,
+        color=z,                # Set color to the z values
+        colorscale='Viridis',   # Choose a colorscale
+        opacity=0.8
+    )
+)])
+
+# Set titles for the axes
+fig.update_layout(
+    scene = dict(
+        xaxis_title='X Axis',
+        yaxis_title='Y Axis',
+        zaxis_title='Z Axis'
+    ),
+    title="3D Scatter Plot"
+)
+fig.show()
+
 
 
 #print(faces)
