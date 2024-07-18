@@ -3,6 +3,7 @@ from brilouin_zone import first_bz
 from fermi_surfaces import create_mesh, brillouin_intersect_mesh, marching_cubes_clip, check_fermi_surface, create_basevect_mesh
 from input import read_energy_numbers
 import numpy as np
+import trimesh
 from scipy.spatial import Delaunay
 import plotly.offline as pyo
 import pandas as pd
@@ -24,17 +25,8 @@ z = brillouin_zone[0][2]
 
 # create 3d object of the first BZ
 mew_brillouin_zone_object = brillouin_intersect_mesh(brillouin_zone[1])
-mew_brillouin_zone_object.apply_translation([0.5, 0.5, 0.5])
-# big BZ:
-new_rez_base_vect = np.array(rez_base_vect)
-new_rez_base_vect[0] *= 35
-new_rez_base_vect[1] *= 35
-new_rez_base_vect[2] *= 35
-big_bz = []
-big_bz.extend(first_bz(new_rez_base_vect))
+mew_brillouin_zone_object.apply_translation([np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0])])
 
-new_big_bz_object = brillouin_intersect_mesh(big_bz[1])
-new_big_bz_object.apply_translation([40, 40, 40])
 
 # create standard mesh and mol mesh and basevect_mesh
 
@@ -58,8 +50,6 @@ for columnName in energy.columns:
                 for j in range(81):
                     # energy_list = energy[columnName].tolist()
                     new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
-
-
 
     # energy[columnName] = placeholder_energy
     print("done")
@@ -109,60 +99,6 @@ from scipy.interpolate import Rbf
 import plotly.io as pio
 
 
-# Visualization
-# visualization of the brillouin_zone
-"""
-
-# Create a 3D scatter plot
-scatter_BZ = go.Scatter3d(
-    x=x,
-    y=y,
-    z=z,
-    mode='lines',
-    line=dict(color='black', width=2)
-)
-
-# contains all
-fig_data = [scatter_BZ]
-fig_data.extend(scatter_fermi)
-
-fig = go.Figure(data=fig_data)
-
-# Define the layout of the plot
-fig.update_layout(
-    scene=dict(
-        xaxis_title='kx',
-        yaxis_title='ky',
-        zaxis_title='kz',
-        aspectmode='cube'
-    )
-)
-
-# Show the plot
-# axis ranges
-x_range = [-np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0])]
-y_range = [-np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0])]
-z_range = [-np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0])]
-
-
-fig.update_layout(
-    scene=dict(
-        xaxis=dict(visible=False, range=x_range),
-        yaxis=dict(visible=False, range=y_range),
-        zaxis=dict(visible=False, range=z_range),
-        annotations=[],  # Remove any annotations if present
-        aspectmode='cube',
-        camera=dict(
-            projection=dict(
-                type='orthographic'
-                # to change the perspective (so that lines dont distort over distance (nicht verjüngen))
-            )
-        )
-    )
-)
-
-fig.show()
-"""
 
 import numpy as np
 from skimage import measure
@@ -185,36 +121,118 @@ for i, vertex in enumerate(test_vertices):
     test_vertices[i] = new_basevect_mesh[p]
 
 new_vertices = []
-for vertex in test_vertices:
-    if mew_brillouin_zone_object.contains([vertex]):
+clipped_vertices = []
+for i, vertex in enumerate(test_vertices):
+    if mew_brillouin_zone_object.contains([np.array(vertex)*2]):
         new_vertices.append(vertex)
-x=[value[0] for value in new_vertices]
-y=[value[1] for value in new_vertices]
-z=[value[2] for value in new_vertices]
+        vertex = [vertex[0]*2-np.abs(rez_base_vect[0][0]),  # why is that?
+                  vertex[1]*2-np.abs(rez_base_vect[0][0]), vertex[2]*2-np.abs(rez_base_vect[0][0])]
+        test_vertices[i] = vertex
+    else:
+        clipped_vertices.append(i)
 
-fig = go.Figure(data=[go.Scatter3d(
-    x=x,
-    y=y,
-    z=z,
+
+
+x_f=[value[0]*2 - np.abs(rez_base_vect[0][0]) for value in new_vertices]
+y_f=[value[1]*2 - np.abs(rez_base_vect[0][0]) for value in new_vertices]
+z_f=[value[2]*2 - np.abs(rez_base_vect[0][0]) for value in new_vertices]
+
+# Visualization
+# visualization of the brillouin_zone
+
+fermi_surface = trimesh.Trimesh(vertices=test_vertices, faces=faces, process=False)
+
+remove_indices = clipped_vertices
+
+# Mark vertices for removal by setting them to None
+mask = np.ones(len(fermi_surface.vertices), dtype=bool)
+mask[remove_indices] = False
+
+# Create a new mesh with only the vertices and faces that are needed
+fermi_surface.update_vertices(mask)
+
+# Clean up unreferenced vertices
+fermi_surface.remove_unreferenced_vertices()
+
+print(fermi_surface.vertices)
+
+#x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:, 2]
+x_mesh, y_mesh, z_mesh = test_vertices[:, 0], test_vertices[:, 1], test_vertices[:, 2]
+
+# Extract I, J, K indices of faces
+#i, j, k = fermi_surface.faces[:, 0], fermi_surface.faces[:, 1], fermi_surface.faces[:, 2]
+i, j, k = faces[:, 0], faces[:, 1], faces[:, 2]
+
+mesh_fermi_surface = go.Mesh3d(
+    x=np.array(x_mesh),
+    y=np.array(y_mesh),
+    z=np.array(z_mesh),
+    i=np.array(i),
+    j=np.array(j),
+    k=np.array(k),
+    color='lightblue'
+)
+
+
+scatter_fermi_surface = go.Scatter3d(
+    x=x_f,
+    y=y_f,
+    z=z_f,
     mode='markers',
     marker=dict(
         size=5,
-        color=z,                # Set color to the z values
+        color=z_f,                # Set color to the z values
         colorscale='Viridis',   # Choose a colorscale
         opacity=0.8
     )
-)])
-
-# Set titles for the axes
-fig.update_layout(
-    scene = dict(
-        xaxis_title='X Axis',
-        yaxis_title='Y Axis',
-        zaxis_title='Z Axis'
-    ),
-    title="3D Scatter Plot"
 )
+
+# Create a 3D scatter plot
+scatter_BZ = go.Scatter3d(
+    x=x,
+    y=y,
+    z=z,
+    mode='lines',
+    line=dict(color='black', width=2)
+)
+
+# contains all
+fig_data = [scatter_BZ, scatter_fermi_surface, mesh_fermi_surface]
+
+fig = go.Figure(data=fig_data)
+
+# Define the layout of the plot
+fig.update_layout(
+    scene=dict(
+        xaxis_title='kx',
+        yaxis_title='ky',
+        zaxis_title='kz',
+        aspectmode='cube'
+    )
+)
+
+# Show the plot
+# axis ranges
+
+
+fig.update_layout(
+    scene=dict(
+        xaxis=dict(visible=True),
+        yaxis=dict(visible=True),
+        zaxis=dict(visible=True),
+        annotations=[],  # Remove any annotations if present
+        aspectmode='cube',
+        camera=dict(
+            projection=dict(
+                type='orthographic'
+                # to change the perspective (so that lines dont distort over distance (nicht verjüngen))
+            )
+        )
+    )
+)
+
 fig.show()
+
 
 
 
@@ -224,7 +242,7 @@ fig = plt.figure(figsize=(10, 7))
 ax = fig.add_subplot(111, projection='3d')
 
 # Create a Poly3DCollection from the vertices and faces
-mesh = Poly3DCollection(test_vertices[faces], alpha=0.7)
+mesh = Poly3DCollection(fermi_surface.vertices[fermi_surface.faces], alpha=0.7)
 mesh.set_facecolor('cyan')
 mesh.set_edgecolor('k')
 ax.add_collection3d(mesh)
