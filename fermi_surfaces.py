@@ -34,6 +34,12 @@ def xc_malloc_tensor3f(x, y, z):
 
 
 def create_basevect_mesh(rez_lattice, grid_size):
+    """
+    Creates the final mesh, where the fermi surface is stored into
+    :param rez_lattice: list of 3, 3D reciprocal lattice vectors
+    :param grid_size: list of 3 items for grid dimensions
+    :return: final fermi surface mesh
+    """
     grid_size = [int(2*grid_size_n-1) for grid_size_n in grid_size]
     mesh = []
 
@@ -48,7 +54,7 @@ def create_basevect_mesh(rez_lattice, grid_size):
     return mesh
 
 
-def create_mesh(rez_lattice, grid_size, brillouin_zone):
+def create_mol_mesh(rez_lattice, grid_size, brillouin_zone):
     """
     creates a mesh within the reciprocal unit cell for any reciprocal lattice
     creates second mesh (mol) where energy placeholders are stored to be replaced by real energy values
@@ -66,10 +72,6 @@ def create_mesh(rez_lattice, grid_size, brillouin_zone):
     direct_lattice = reciprocal_lattice.reciprocal_lattice.matrix
 
     grid_size = [int(grid_size_n) for grid_size_n in grid_size]
-    mesh = []
-
-    fraction1 = fraction(rez_lattice[1], grid_size[1])  # for generating basic mesh
-    fraction2 = fraction(rez_lattice[2], grid_size[2])
 
     frmin = [1.0, 1.0, 1.0]  # placeholder for min and max vector of the fermi_surface
     frmax = [-1.0, -1.0, -1.0]
@@ -84,8 +86,6 @@ def create_mesh(rez_lattice, grid_size, brillouin_zone):
     for i in range(0, grid_size[0]):
         for j in range(0, grid_size[1]):
             for k in range(0, grid_size[2]):
-                v = np.array(rez_lattice[0]) / grid_size[0] * i + fraction1[j] + fraction2[k]
-                mesh.append(v)
                 band_grid[i, j, k] = p  # placeholder to create mol grid
                 p += 1
 
@@ -127,7 +127,7 @@ def create_mesh(rez_lattice, grid_size, brillouin_zone):
             for k1, k in enumerate(range(int(Imin[2]), int(Imax[2]) + 1)):
                 kk = k if k >= 0 else grid_size_minus_one[2] + k
                 mols['molgrid'][i1][j1][k1] = band_grid[ii, jj, kk]
-    return mesh, mols
+    return mols
 
 
 def crop_BZ(fermisurf, Brillouin_Zone):
