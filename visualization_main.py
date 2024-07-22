@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 from brilouin_zone import first_bz
-from fermi_surfaces import create_mol_mesh, brillouin_intersect_mesh, check_fermi_surface, create_basevect_mesh
+from fermi_surfaces import create_mol_mesh, brillouin_intersect_mesh, facet_plane, create_basevect_mesh, face_center_BZ
 from input import read_energy_numbers
 import numpy as np
 import trimesh
@@ -26,13 +26,15 @@ z = brillouin_zone[0][2]
 # create 3d object of the first BZ
 mew_brillouin_zone_object = brillouin_intersect_mesh(brillouin_zone[1])
 # translation of the first BZ cause the bascevect_mesh starts at [0,0,0]
-mew_brillouin_zone_object.apply_translation([np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0])])
+#mew_brillouin_zone_object.apply_translation([np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0]), np.abs(rez_base_vect[0][0])])
 
-
+#mew_brillouin_zone_object.show()
 # create mol mesh and basevect_mesh
 
 new_mols = create_mol_mesh(rez_base_vect, grid_size, brillouin_zone)
 new_basevect_mesh = create_basevect_mesh(rez_base_vect, grid_size)
+
+test = brillouin_zone[1][0]
 
 mc_energy_values_list = []
 new_mols_helper = []
@@ -58,9 +60,6 @@ for columnName in energy.columns:
     print("done")
     mc_energy_values_list.append(new_mols_helper)
 
-
-from scipy.interpolate import Rbf
-import plotly.io as pio
 from skimage import measure
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -83,24 +82,21 @@ for i, vertex in enumerate(test_vertices):
 new_vertices = []
 clipped_vertices = []
 for i, vertex in enumerate(test_vertices):
-    if mew_brillouin_zone_object.contains([np.array(vertex)*2]):
-        new_vertices.append(vertex)
-        vertex = [vertex[0]*2-np.abs(rez_base_vect[0][0]),  # why is that?
-                  vertex[1]*2-np.abs(rez_base_vect[0][0]), vertex[2]*2-np.abs(rez_base_vect[0][0])]
-        #test_vertices[i] = vertex
-    else:
-        clipped_vertices.append(i)
+    new_vertices.append(vertex)
+    vertex = [vertex[0]*2-np.abs(rez_base_vect[0][0]),  # why is that?
+              vertex[1]*2-np.abs(rez_base_vect[0][0]), vertex[2]*2-np.abs(rez_base_vect[0][0])]
+    test_vertices[i] = vertex
 
 
-x_f=[value[0]*2 - np.abs(rez_base_vect[0][0]) for value in new_vertices]
-y_f=[value[1]*2 - np.abs(rez_base_vect[0][0]) for value in new_vertices]
-z_f=[value[2]*2 - np.abs(rez_base_vect[0][0]) for value in new_vertices]
+x_f = [value[0] for value in new_vertices]
+y_f = [value[1] for value in new_vertices]
+z_f = [value[2] for value in new_vertices]
 
 # Visualization
 # visualization of the brillouin_zone
 
 fermi_surface = trimesh.Trimesh(vertices=test_vertices, faces=faces, process=False)
-
+"""
 remove_indices = clipped_vertices
 
 # Mark vertices for removal by setting them to None
@@ -114,13 +110,38 @@ fermi_surface.update_vertices(mask)
 fermi_surface.remove_unreferenced_vertices()
 
 fermi_surface = fermi_surface.smooth_shaded
+"""
+# len(brillouin_zone[1])
+for i in range(15):
+    if mew_brillouin_zone_object.facets_area[i] == 0:
+        pass
+    else:
+        facets_normal = np.array(mew_brillouin_zone_object.facets_normal[i])
+        positive_fermisurface = fermi_surface.slice_plane(plane_origin=mew_brillouin_zone_object.facets_origin[i],
+                                                          plane_normal=facets_normal)
+        negative_fermisurface = fermi_surface.slice_plane(plane_origin=mew_brillouin_zone_object.facets_origin[i],
+                                                          plane_normal=facets_normal * (-1))
 
-#x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:, 2]
-x_mesh, y_mesh, z_mesh = test_vertices[:, 0], test_vertices[:, 1], test_vertices[:, 2]
+        if len(positive_fermisurface.vertices) > len(negative_fermisurface.vertices):
+            fermi_surface = positive_fermisurface
+    #new_center_plane = 2*face_center(brillouin_zone[1][2])
+    #fermi_surface = fermi_surface.slice_plane(plane_origin=mew_brillouin_zone_object.facets_origin[3], plane_normal=test_array)
+
+test_list = []
+for num in mew_brillouin_zone_object.facets_normal:
+    test_list.append(num)
+
+
+x_f = [value[0] for value in test_list]
+y_f = [value[1] for value in test_list]
+z_f = [value[2] for value in test_list]
+
+x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:, 2]
+#x_mesh, y_mesh, z_mesh = test_vertices[:, 0], test_vertices[:, 1], test_vertices[:, 2]
 
 # Extract I, J, K indices of faces
-#i, j, k = fermi_surface.faces[:, 0], fermi_surface.faces[:, 1], fermi_surface.faces[:, 2]
-i, j, k = faces[:, 0], faces[:, 1], faces[:, 2]
+i, j, k = fermi_surface.faces[:, 0], fermi_surface.faces[:, 1], fermi_surface.faces[:, 2]
+#i, j, k = faces[:, 0], faces[:, 1], faces[:, 2]
 
 mesh_fermi_surface = go.Mesh3d(
     x=np.array(x_mesh),
@@ -130,6 +151,16 @@ mesh_fermi_surface = go.Mesh3d(
     j=np.array(j),
     k=np.array(k),
     color='lightblue',
+    opacity=1
+)
+mesh_fermi_surface_inside = go.Mesh3d(
+    x=np.array(x_mesh)*0.99,
+    y=np.array(y_mesh)*0.99,
+    z=np.array(z_mesh)*0.99,
+    i=np.array(i),
+    j=np.array(j),
+    k=np.array(k),
+    color='red',
     opacity=0.6
 )
 
@@ -157,7 +188,8 @@ scatter_BZ = go.Scatter3d(
 )
 
 # contains all
-fig_data = [scatter_BZ, scatter_fermi_surface, mesh_fermi_surface]
+fig_data = [scatter_BZ, mesh_fermi_surface, scatter_fermi_surface]
+
 
 fig = go.Figure(data=fig_data)
 
@@ -177,9 +209,9 @@ fig.update_layout(
 
 fig.update_layout(
     scene=dict(
-        xaxis=dict(visible=True),
-        yaxis=dict(visible=True),
-        zaxis=dict(visible=True),
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+        zaxis=dict(visible=False),
         annotations=[],  # Remove any annotations if present
         aspectmode='cube',
         camera=dict(
@@ -195,7 +227,7 @@ fig.show()
 
 
 
-
+"""
 #print(faces)
 # Plot the resulting surface
 fig = plt.figure(figsize=(10, 7))
@@ -214,3 +246,4 @@ ax.set_ylim(0, 81)
 ax.set_zlim(0, 81)
 
 plt.show()
+"""

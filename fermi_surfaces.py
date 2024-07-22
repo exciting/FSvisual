@@ -184,7 +184,7 @@ def brillouin_intersect_mesh(brillouin_zone):
         helper_brillouin_zone.extend(facet)
     brillouin_zone = helper_brillouin_zone
 
-    # Triangulate the faces
+    # Triangulate the face
     triangulated_faces = triangulate_faces(facet_order_list)
 
     brillouin_zone_object = trimesh.Trimesh(vertices=brillouin_zone, faces=triangulated_faces)
@@ -192,43 +192,17 @@ def brillouin_intersect_mesh(brillouin_zone):
     return brillouin_zone_object
 
 
-def fold_to_first_bz(mesh_point, brillouin_zone, bz_model):
+def facet_plane(facet):
     # attempt for folding algorithm
     # create plane:
-    for facet in brillouin_zone:
-        plane_vect1 = np.array(facet[0])
-        plane_vect2 = np.array(facet[1])
-        plane_vect3 = np.array(facet[2])
 
-        n = np.cross(plane_vect2, plane_vect3)
+    plane_vect1 = np.array(facet[0])
+    plane_vect2 = np.array(facet[1])
+    plane_vect3 = np.array(facet[2])
 
-        # plane in coordinate_form
-        # d = n1*v1 + n2*v2 + n3*v3
-        d = n[0] * plane_vect1[0] + n[1] * plane_vect1[1] + n[2] * plane_vect1[2]
+    n = np.cross(plane_vect2, plane_vect3)
 
-        # create line
-        # (mesh_point + x*n) in plane equation
-        a = np.dot(n, n)
-        b = d - np.dot(n, mesh_point)
-
-        # a*x = b
-
-        x = b / a
-
-        intersection_point = mesh_point + x * n
-
-        length = np.sqrt(np.dot(mesh_point - intersection_point, mesh_point - intersection_point))
-
-        # normalize n:
-        n_norm_const = np.sqrt(1 / np.dot(n, n))
-        n_norm = n * n_norm_const
-
-        # calculate mirrored point
-        p_mirror = mesh_point + 2 * length * n_norm
-
-        if bz_model.contains([p_mirror])[0]:
-            return p_mirror
-    return [0, 0, 0]
+    return n, plane_vect1
 
 
 def check_fermi_surface(energies, fermi_energy):
@@ -270,3 +244,13 @@ def marching_cubes_clip(rez_vec, facets, vertices, brillouin_zone_object, grid_s
             del facets[math.ceil((i-j) / 3)]
             del vertices[i-j]
     return vertices, facets
+
+
+def face_center_BZ(brillouin_zone_object):
+    # triangulize the sufacets:
+    triangles = brillouin_zone_object.triangles
+    triangles_center = brillouin_zone_object.triangles_center
+    triangles_area = brillouin_zone_object.area_faces
+
+
+
