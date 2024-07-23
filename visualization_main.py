@@ -7,7 +7,7 @@ import trimesh
 from skimage import measure
 import pandas as pd
 
-source = "FERMISURF_Au_fcc.bxsf"
+source = "FS-Au-PBEsol.bxsf"
 data = read_energy_numbers(source)
 energy = data[0]
 fermi_energy = data[1]
@@ -38,9 +38,9 @@ for index, columnName in enumerate(energy.columns):
     placeholder_energy = []
     new_mols_helper = deepcopy(new_mols["molgrid"])
 
-    for i in range(81):
-        for k in range(81):
-            for j in range(81):
+    for i in range(new_basevect_grid_size[0]):
+        for k in range(new_basevect_grid_size[1]):
+            for j in range(new_basevect_grid_size[2]):
                 new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
 
     # energy[columnName] = placeholder_energy
@@ -53,6 +53,7 @@ for index, columnName in enumerate(energy.columns):
     try:
         vertices, faces, normals, values = measure.marching_cubes(new_mols_helper, level=isovalue)
     except ValueError:
+        "nothing here"
         continue
 
     band_index.append(index+1)
