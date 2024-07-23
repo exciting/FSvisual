@@ -8,7 +8,7 @@ from scipy.spatial import Delaunay
 import plotly.offline as pyo
 import pandas as pd
 
-source = "FERMISURF_Po_sc.bxsf"
+source = "FERMISURF_Au_fcc.bxsf"
 data = read_energy_numbers(source)
 energy = data[0]
 fermi_energy = data[1]
@@ -28,6 +28,7 @@ test_triangle = face_center_BZ(brillouin_zone[1])
 
 new_mols = create_mol_mesh(rez_base_vect, grid_size, brillouin_zone)
 new_basevect_mesh = create_basevect_mesh(rez_base_vect, grid_size)
+new_basevect_grid_size = [grid_size[0]*2-1, grid_size[1]*2-1, grid_size[2]*2-1]
 
 new_mols_helper = []
 
@@ -52,59 +53,37 @@ for columnName in energy.columns:
 
 from skimage import measure
 
-# energy_values = np.random.random((grid_size, grid_size, grid_size))  # Replace with your actual energy values
-grid_size = 81
 # Define the isovalue for the surface (this value should represent the energy level that forms the surface)
 isovalue = 0.0  # Adjust this value based on your data
 
 # Apply the Marching Cubes algorithm
 vertices, faces, normals, values = measure.marching_cubes(new_mols_helper, level=isovalue)
 
-test_vertices = deepcopy(vertices)
+new_vertices = deepcopy(vertices)
 
-for i, vertex in enumerate(test_vertices):
-    p = int(round(vertex[2])) + int(round(vertex[1]) * grid_size) + int(round(vertex[0]) * grid_size ** 2)
-    test_vertices[i] = new_basevect_mesh[p]
+for i, vertex in enumerate(new_vertices):
+    p = int(round(vertex[2])) + int(round(vertex[1]) * new_basevect_grid_size[1]) + int(round(vertex[0]) * new_basevect_grid_size[0] ** 2)
+    new_vertices[i] = new_basevect_mesh[p]
 
-new_vertices = []
-for i, vertex in enumerate(test_vertices):
-    new_vertices.append(vertex)
+for i, vertex in enumerate(new_vertices):
     vertex = [vertex[0] * 2 - np.abs(rez_base_vect[0][0]),  # why is that?
               vertex[1] * 2 - np.abs(rez_base_vect[0][0]), vertex[2] * 2 - np.abs(rez_base_vect[0][0])]
-    test_vertices[i] = vertex
-
-x_f = [value[0] for value in new_vertices]
-y_f = [value[1] for value in new_vertices]
-z_f = [value[2] for value in new_vertices]
+    new_vertices[i] = vertex
 
 # Visualization
 # visualization of the brillouin_zone
 
-fermi_surface = trimesh.Trimesh(vertices=test_vertices, faces=faces, process=False)
+fermi_surface = trimesh.Trimesh(vertices=new_vertices, faces=faces, process=False)
 
 # len(brillouin_zone[1])
 facet_centers = face_center_BZ(brillouin_zone[1])
-"""
-for i in range(len(brillouin_zone[1])):
-    facets_normal = np.array(facet_centers[i]) + 1 / 2 * np.array(facet_centers[i])
 
-    positive_fermisurface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
-                                                      plane_normal=facets_normal)
-    negative_fermisurface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
-                                                      plane_normal=facets_normal * (-1))
-
-    if len(positive_fermisurface.vertices) > len(negative_fermisurface.vertices):
-        fermi_surface = positive_fermisurface
-    else:
-        fermi_surface = negative_fermisurface
-"""
-
+# cutting off the surface area outside the 1. BZ
 for i in range(len(brillouin_zone[1])):
     facets_normal = np.array(facet_centers[i]) + 1 / 2 * np.array(facet_centers[i])
 
     fermi_surface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
-                                                      plane_normal=facets_normal * (-1))
-
+                                              plane_normal=facets_normal * (-1))
 
 x_f = [value[0] for value in test_triangle]
 y_f = [value[1] for value in test_triangle]
