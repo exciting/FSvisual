@@ -54,31 +54,19 @@ def create_basevect_mesh(rez_lattice, grid_size):
     return mesh
 
 
-def create_mol_mesh(rez_lattice, grid_size, brillouin_zone):
+def create_mol_mesh(grid_size):
     """
     creates a mesh within the reciprocal unit cell for any reciprocal lattice
     creates second mesh (mol) where energy placeholders are stored to be replaced by real energy values
     later on -> very important for fermi_surface shape
 
-    :param brillouin_zone: facets and vertices of the first BZ are needed
-    :param direct_lattice: koordinates for the reciprocal lattice vectors (list of three 3 Dimensional koordinates)
     :param grid_size: number of datapoints the grid should have (list of 3 number for each lattice vector)
     :return: standard mesh and mol mesh
     """
 
-    reciprocal_lattice = Lattice([rez_lattice[0], rez_lattice[1], rez_lattice[2]])
-
-    # Umwandlung in das direkte Gitter
-    direct_lattice = reciprocal_lattice.reciprocal_lattice.matrix
-
     grid_size = [int(grid_size_n) for grid_size_n in grid_size]
-
-    frmin = [1.0, 1.0, 1.0]  # placeholder for min and max vector of the fermi_surface
-    frmax = [-1.0, -1.0, -1.0]
     Imin = [0] * 3
     Imax = [0] * 3
-    frImin = [0.0] * 3
-    frImax = [0.0] * 3
     band_grid = xc_malloc_tensor3f(grid_size[0], grid_size[1], grid_size[2])
 
     # loop that creates the mesh
@@ -91,34 +79,13 @@ def create_mol_mesh(rez_lattice, grid_size, brillouin_zone):
 
     grid_size_minus_one = [grid - 1 for grid in grid_size]
 
-    for i in range(len(brillouin_zone[1])):  # facet
-        for j in range(len(brillouin_zone[1][i])):  # vertex
-            for k in range(3):  # finding real min and max vector of fermi_surface
-                a = (brillouin_zone[1][i][j][0] * direct_lattice[k][0]
-                     + brillouin_zone[1][i][j][1] * direct_lattice[k][1]
-                     + brillouin_zone[1][i][j][2] * direct_lattice[k][2])
-                if a < frmin[k]:
-                    frmin[k] = a
-                if a > frmax[k]:
-                    frmax[k] = a
     for k in range(3):
         Imin[k] = -grid_size_minus_one[k]
         Imax[k] = grid_size_minus_one[k]
 
-        frImin[k] = float(Imin[k]) / grid_size_minus_one[k]
-        frImax[k] = float(Imax[k]) / grid_size_minus_one[k]
-
     # creating the mols dictionary
-    mols = {'i': Imax[0] - Imin[0] + 1, 'j': Imax[1] - Imin[1] + 1, 'k': Imax[2] - Imin[2] + 1, 'lowcoor': [0, 0, 0],
-            "molgrid": xc_malloc_tensor3f(grid_size[0], grid_size[1], grid_size[2])}
+    mols = {'i': Imax[0] - Imin[0] + 1, 'j': Imax[1] - Imin[1] + 1, 'k': Imax[2] - Imin[2] + 1}
     mols["molgrid"] = xc_malloc_tensor3f(mols["i"], mols["j"], mols["k"])
-    for k in range(3):
-        mols['lowcoor'][k] = (frImin[0] * direct_lattice[k][0] +
-                              frImin[1] * direct_lattice[k][1] +
-                              frImin[2] * direct_lattice[k][2])
-        # for j in range(3):
-        #    mols['vec'][k][j] = (frImax[k] - frImin[k]) * rez_lattice[k][j]
-        #    mols['isoexpand']['rep_vec'][k][j] = rez_lattice[k][
 
     for i1, i in enumerate(range(int(Imin[0]), int(Imax[0]) + 1)):
         ii = i if i >= 0 else grid_size_minus_one[0] + i
@@ -128,18 +95,6 @@ def create_mol_mesh(rez_lattice, grid_size, brillouin_zone):
                 kk = k if k >= 0 else grid_size_minus_one[2] + k
                 mols['molgrid'][i1][j1][k1] = band_grid[ii, jj, kk]
     return mols
-
-
-def crop_BZ(fermisurf, Brillouin_Zone):
-    # marching cubes:
-    triangulized = measure.marching_cubes(fermisurf, 0)
-
-    for triangle in triangulized:
-        for i in range(3):
-            index = triangle
-
-
-# def energy_selection(band_energies):
 
 
 def triangulate_faces(facets):
@@ -163,6 +118,7 @@ def triangulate_faces(facets):
 
 
 def brillouin_intersect_mesh(brillouin_zone):
+    # outdated
     """
     modulates a 3D mesh in shape of the 1. BZ to tell whether a point lies within the 1. BZ or not
 
@@ -192,20 +148,8 @@ def brillouin_intersect_mesh(brillouin_zone):
     return brillouin_zone_object
 
 
-def facet_plane(facet):
-    # attempt for folding algorithm
-    # create plane:
-
-    plane_vect1 = np.array(facet[0])
-    plane_vect2 = np.array(facet[1])
-    plane_vect3 = np.array(facet[2])
-
-    n = np.cross(plane_vect2, plane_vect3)
-
-    return n, plane_vect1
-
-
 def check_fermi_surface(energies, fermi_energy):
+    # outdated
     """
     checks whether the energy in a band is equal to the fermi_energy (within uncertainties)
     :param fermi_energy: energy value that FERMISURF.bxsf defines as fermiy_energy

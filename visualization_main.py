@@ -53,8 +53,8 @@ for columnName in energy.columns:
 
 from skimage import measure
 
-# Define the isovalue for the surface (this value should represent the energy level that forms the surface)
-isovalue = 0.0  # Adjust this value based on your data
+# Define the isovalue for the surface (this value represents the energy level that forms the surface)
+isovalue = 0.0
 
 # Apply the Marching Cubes algorithm
 vertices, faces, normals, values = measure.marching_cubes(new_mols_helper, level=isovalue)
@@ -84,6 +84,8 @@ for i in range(len(brillouin_zone[1])):
 
     fermi_surface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
                                               plane_normal=facets_normal * (-1))
+
+fermi_surface = fermi_surface.smooth_shaded
 
 x_f = [value[0] for value in test_triangle]
 y_f = [value[1] for value in test_triangle]
@@ -173,24 +175,3 @@ fig.update_layout(
 )
 
 fig.show()
-
-"""
-#print(faces)
-# Plot the resulting surface
-fig = plt.figure(figsize=(10, 7))
-ax = fig.add_subplot(111, projection='3d')
-
-# Create a Poly3DCollection from the vertices and faces
-mesh = Poly3DCollection(test_vertices[faces], alpha=0.7)
-mesh.set_facecolor('cyan')
-mesh.set_edgecolor('k')
-ax.add_collection3d(mesh)
-
-# Set plot limits
-
-ax.set_xlim(0, 81)
-ax.set_ylim(0, 81)
-ax.set_zlim(0, 81)
-
-plt.show()
-"""
