@@ -1,11 +1,10 @@
 import plotly.graph_objects as go
 from brilouin_zone import first_bz
-from fermi_surfaces import create_mol_mesh, brillouin_intersect_mesh, facet_plane, create_basevect_mesh, face_center_BZ
+from fermi_surfaces import create_mol_mesh, create_basevect_mesh, face_center_BZ
 from input import read_energy_numbers
 import numpy as np
 import trimesh
-from scipy.spatial import Delaunay
-import plotly.offline as pyo
+from skimage import measure
 import pandas as pd
 
 source = "FERMISURF_Au_fcc.bxsf"
@@ -26,101 +25,96 @@ z = brillouin_zone[0][2]
 # test for triangle centers
 test_triangle = face_center_BZ(brillouin_zone[1])
 
-new_mols = create_mol_mesh(rez_base_vect, grid_size, brillouin_zone)
+new_mols = create_mol_mesh(grid_size)
 new_basevect_mesh = create_basevect_mesh(rez_base_vect, grid_size)
 new_basevect_grid_size = [grid_size[0]*2-1, grid_size[1]*2-1, grid_size[2]*2-1]
+fermi_surface_list = []
 
-new_mols_helper = []
 
 from copy import deepcopy
+new_mols_helper = []
+band_index = []
+for index, columnName in enumerate(energy.columns):
+    placeholder_energy = []
+    new_mols_helper = deepcopy(new_mols["molgrid"])
 
-for columnName in energy.columns:
-    if columnName == "Band 4":
-        placeholder_energy = []
-        new_mols_helper = deepcopy(new_mols["molgrid"])
-        # absolute value of lattice vectors
-        abs_vec = [np.sqrt(rez_base_vect[0][0] ** 2 + rez_base_vect[0][1] ** 2 + rez_base_vect[0][2] ** 2),
-                   np.sqrt(rez_base_vect[1][0] ** 2 + rez_base_vect[1][1] ** 2 + rez_base_vect[1][2] ** 2),
-                   np.sqrt(rez_base_vect[2][0] ** 2 + rez_base_vect[2][1] ** 2 + rez_base_vect[2][2] ** 2)]
-
-        for i in range(81):
-            for k in range(81):
-                for j in range(81):
-                    new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
+    for i in range(81):
+        for k in range(81):
+            for j in range(81):
+                new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
 
     # energy[columnName] = placeholder_energy
     print("done")
 
-from skimage import measure
+    # Define the isovalue for the surface (this value represents the energy level that forms the surface)
+    isovalue = 0.0
 
-# Define the isovalue for the surface (this value represents the energy level that forms the surface)
-isovalue = 0.0
+    # Apply the Marching Cubes algorithm
+    try:
+        vertices, faces, normals, values = measure.marching_cubes(new_mols_helper, level=isovalue)
+    except ValueError:
+        continue
 
-# Apply the Marching Cubes algorithm
-vertices, faces, normals, values = measure.marching_cubes(new_mols_helper, level=isovalue)
+    band_index.append(index+1)
+    new_vertices = deepcopy(vertices)
 
-new_vertices = deepcopy(vertices)
+    # transform vertices, so it fits the base_vect_grid
+    for i, vertex in enumerate(new_vertices):
+        p = int(round(vertex[2])) + int(round(vertex[1]) * new_basevect_grid_size[1]) + int(round(vertex[0]) * new_basevect_grid_size[0] ** 2)
+        new_vertices[i] = new_basevect_mesh[p]
 
-for i, vertex in enumerate(new_vertices):
-    p = int(round(vertex[2])) + int(round(vertex[1]) * new_basevect_grid_size[1]) + int(round(vertex[0]) * new_basevect_grid_size[0] ** 2)
-    new_vertices[i] = new_basevect_mesh[p]
+    for i, vertex in enumerate(new_vertices):
+        vertex = [vertex[0] * 2 - np.abs(rez_base_vect[0][0]),  # why is that?
+                  vertex[1] * 2 - np.abs(rez_base_vect[0][0]), vertex[2] * 2 - np.abs(rez_base_vect[0][0])]
+        new_vertices[i] = vertex
 
-for i, vertex in enumerate(new_vertices):
-    vertex = [vertex[0] * 2 - np.abs(rez_base_vect[0][0]),  # why is that?
-              vertex[1] * 2 - np.abs(rez_base_vect[0][0]), vertex[2] * 2 - np.abs(rez_base_vect[0][0])]
-    new_vertices[i] = vertex
+    # Visualization
+    # visualization of the brillouin_zone
 
-# Visualization
-# visualization of the brillouin_zone
+    fermi_surface = trimesh.Trimesh(vertices=new_vertices, faces=faces, process=False)
 
-fermi_surface = trimesh.Trimesh(vertices=new_vertices, faces=faces, process=False)
+    # len(brillouin_zone[1])
+    facet_centers = face_center_BZ(brillouin_zone[1])
 
-# len(brillouin_zone[1])
-facet_centers = face_center_BZ(brillouin_zone[1])
+    # cutting off the surface area outside the 1. BZ
+    for i in range(len(brillouin_zone[1])):
+        facets_normal = np.array(facet_centers[i]) + 1 / 2 * np.array(facet_centers[i])
 
-# cutting off the surface area outside the 1. BZ
-for i in range(len(brillouin_zone[1])):
-    facets_normal = np.array(facet_centers[i]) + 1 / 2 * np.array(facet_centers[i])
+        fermi_surface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
+                                                  plane_normal=facets_normal * (-1))
 
-    fermi_surface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
-                                              plane_normal=facets_normal * (-1))
-
-fermi_surface = fermi_surface.smooth_shaded
+    fermi_surface = fermi_surface.smooth_shaded
+    fermi_surface_list.append(fermi_surface)
 
 x_f = [value[0] for value in test_triangle]
 y_f = [value[1] for value in test_triangle]
 z_f = [value[2] for value in test_triangle]
 
-x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:, 2]
+mesh_fermi_surfaces = []
+for index, fermi_surface in enumerate(fermi_surface_list):
+    x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:, 2]
 
-# Extract I, J, K indices of faces
-i, j, k = fermi_surface.faces[:, 0], fermi_surface.faces[:, 1], fermi_surface.faces[:, 2]
+    # Extract I, J, K indices of faces
+    i, j, k = fermi_surface.faces[:, 0], fermi_surface.faces[:, 1], fermi_surface.faces[:, 2]
 
-mesh_fermi_surface = go.Mesh3d(
-    x=np.array(x_mesh),
-    y=np.array(y_mesh),
-    z=np.array(z_mesh),
-    i=np.array(i),
-    j=np.array(j),
-    k=np.array(k),
-    color='lightblue',
-    opacity=1
-)
-mesh_fermi_surface_inside = go.Mesh3d(
-    x=np.array(x_mesh) * 0.99,
-    y=np.array(y_mesh) * 0.99,
-    z=np.array(z_mesh) * 0.99,
-    i=np.array(i),
-    j=np.array(j),
-    k=np.array(k),
-    color='red',
-    opacity=0.6
-)
+    mesh_fermi_surfaces.append(go.Mesh3d(
+        x=np.array(x_mesh),
+        y=np.array(y_mesh),
+        z=np.array(z_mesh),
+        i=np.array(i),
+        j=np.array(j),
+        k=np.array(k),
+        name=f"Band {band_index[index]}",
+        #color='lightblue',
+        opacity=1,
+        showlegend = True
+    ))
 
 scatter_fermi_surface = go.Scatter3d(
     x=x_f,
     y=y_f,
     z=z_f,
+    name="facet center points",
     mode='markers',
     marker=dict(
         size=5,
@@ -136,11 +130,13 @@ scatter_BZ = go.Scatter3d(
     y=y,
     z=z,
     mode='lines',
+    name="1. BZ",
     line=dict(color='black', width=2)
 )
 
 # contains all
-fig_data = [scatter_BZ, mesh_fermi_surface, scatter_fermi_surface]
+fig_data = [scatter_BZ, scatter_fermi_surface]
+fig_data.extend(mesh_fermi_surfaces)
 
 fig = go.Figure(data=fig_data)
 
