@@ -246,11 +246,87 @@ def marching_cubes_clip(rez_vec, facets, vertices, brillouin_zone_object, grid_s
     return vertices, facets
 
 
-def face_center_BZ(brillouin_zone_object):
-    # triangulize the sufacets:
-    triangles = brillouin_zone_object.triangles
-    triangles_center = brillouin_zone_object.triangles_center
-    triangles_area = brillouin_zone_object.area_faces
+def abs_vect(vector):
+    """
+    :param vector: takes 3D vector as a list or array
+    :return: absolute value of that vector
+    """
+    return np.sqrt(vector[0]**2 + vector[1]**2 + vector[2]**2)
+
+
+def triangle_area(triangle):
+
+    """
+    calculates the area of a triangle via vertices
+    :param triangle: list of 3 vertices
+    :return: area of a triangle in FE
+    """
+
+    # nach Koordinaten im Raum
+
+    P1 = np.array(triangle[0])
+    P2 = np.array(triangle[1])
+    P3 = np.array(triangle[2])
+
+    area = 1/2 * np.sqrt(abs_vect(P2-P1)**2 * abs_vect(P3-P1)**2 - np.dot((P2-P1), (P3-P1))**2)
+    return area
+
+
+def triangle_center(triangle):
+
+    """
+    calculates the center of every triangle
+    :param triangle: list of 3 vertices
+    :return: center point of a triangle
+    """
+
+    xS = 1/3 * (triangle[0][0] + triangle[1][0] + triangle[2][0])
+    yS = 1/3 * (triangle[0][1] + triangle[1][1] + triangle[2][1])
+    zS = 1/3 * (triangle[0][2] + triangle[1][2] + triangle[2][2])
+
+    return [xS, yS, zS]
+
+
+def face_center_BZ(brillouin_zone_facets):
+
+    """
+    function to calculate the center of every facet
+    :param brillouin_zone_facets: list with all facets (filled with points, not indices)
+    :return: list of 3D center points for every facet
+    """
+
+    # triangulate the facets:
+    triangle_list = triangulate_faces(brillouin_zone_facets)
+
+    face_centers = []
+    j = 0
+    for facet in brillouin_zone_facets:  # goes through every facet and calculates the center of it
+        triangle_areas = []
+        triangle_centers = []
+        for triangle in triangle_list[j:j+len(facet)-2]:  # goes through every triangle of each facet
+            # triangle area:
+            if triangle_area(triangle) != 0:
+                triangle_areas.append(triangle_area(triangle))  # triangle area
+                triangle_centers.append(triangle_center(triangle))  # triangle center
+        j += len(facet)-2
+
+        x_coord = np.array([point[0] for point in triangle_centers])
+        y_coord = np.array([point[1] for point in triangle_centers])
+        z_coord = np.array([point[2] for point in triangle_centers])
+
+        # calculation of the facet center (geometrischer Schwerpunkt)
+        xS = np.sum(x_coord * np.array(triangle_areas)) / np.sum(triangle_areas)
+        yS = np.sum(y_coord * np.array(triangle_areas)) / np.sum(triangle_areas)
+        zS = np.sum(z_coord * np.array(triangle_areas)) / np.sum(triangle_areas)
+
+        face_centers.append([xS, yS, zS])
+
+    return face_centers
+
+
+
+
+
 
 
 

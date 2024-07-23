@@ -23,6 +23,9 @@ x = brillouin_zone[0][0]
 y = brillouin_zone[0][1]
 z = brillouin_zone[0][2]
 
+# test for triangle centers
+test_triangle = face_center_BZ(brillouin_zone[1])
+
 # create 3d object of the first BZ
 mew_brillouin_zone_object = brillouin_intersect_mesh(brillouin_zone[1])
 # translation of the first BZ cause the bascevect_mesh starts at [0,0,0]
@@ -112,29 +115,35 @@ fermi_surface.remove_unreferenced_vertices()
 fermi_surface = fermi_surface.smooth_shaded
 """
 # len(brillouin_zone[1])
-for i in range(15):
-    if mew_brillouin_zone_object.facets_area[i] == 0:
-        pass
-    else:
-        facets_normal = np.array(mew_brillouin_zone_object.facets_normal[i])
-        positive_fermisurface = fermi_surface.slice_plane(plane_origin=mew_brillouin_zone_object.facets_origin[i],
-                                                          plane_normal=facets_normal)
-        negative_fermisurface = fermi_surface.slice_plane(plane_origin=mew_brillouin_zone_object.facets_origin[i],
-                                                          plane_normal=facets_normal * (-1))
+facet_centers = face_center_BZ(brillouin_zone[1])
+for i in range(len(brillouin_zone[1])):
+    facets_normal = np.array(facet_centers[i]) + 1/2 * np.array(facet_centers[i])
 
-        if len(positive_fermisurface.vertices) > len(negative_fermisurface.vertices):
-            fermi_surface = positive_fermisurface
+    positive_fermisurface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
+                                                    plane_normal=facets_normal)
+    negative_fermisurface = fermi_surface.slice_plane(plane_origin=brillouin_zone[1][i][0],
+                                                    plane_normal=facets_normal * (-1))
+
+    if len(positive_fermisurface.vertices) > len(negative_fermisurface.vertices):
+        fermi_surface = positive_fermisurface
+    else:
+        fermi_surface = negative_fermisurface
+
+
+
     #new_center_plane = 2*face_center(brillouin_zone[1][2])
     #fermi_surface = fermi_surface.slice_plane(plane_origin=mew_brillouin_zone_object.facets_origin[3], plane_normal=test_array)
 
 test_list = []
 for num in mew_brillouin_zone_object.facets_normal:
     test_list.append(num)
+for num in mew_brillouin_zone_object.facets_origin:
+    test_list.append(num)
 
 
-x_f = [value[0] for value in test_list]
-y_f = [value[1] for value in test_list]
-z_f = [value[2] for value in test_list]
+x_f = [value[0] for value in test_triangle]
+y_f = [value[1] for value in test_triangle]
+z_f = [value[2] for value in test_triangle]
 
 x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:, 2]
 #x_mesh, y_mesh, z_mesh = test_vertices[:, 0], test_vertices[:, 1], test_vertices[:, 2]
@@ -189,6 +198,7 @@ scatter_BZ = go.Scatter3d(
 
 # contains all
 fig_data = [scatter_BZ, mesh_fermi_surface, scatter_fermi_surface]
+
 
 
 fig = go.Figure(data=fig_data)
