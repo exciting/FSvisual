@@ -8,7 +8,7 @@ from skimage import measure
 import pandas as pd
 import pymeshlab
 
-source = "FERMISURF_Po_sc.bxsf"
+source = "FERMISURF_Au_fcc.bxsf"
 data = read_energy_numbers(source)
 energy = data[0]
 fermi_energy = data[1]
@@ -29,19 +29,19 @@ from copy import deepcopy
 new_mols_helper = []
 band_index = []
 for index, columnName in enumerate(energy.columns):
+
     placeholder_energy = []
     new_mols_helper = deepcopy(new_mols["molgrid"])
-
-    for i in range(new_basevect_grid_size[0]):
-        for k in range(new_basevect_grid_size[1]):
-            for j in range(new_basevect_grid_size[2]):
-                new_mols_helper[i][j][k] = energy[columnName][int(new_mols["molgrid"][i][j][k])]
-
+    # creates an array with energies taken by the corresponding indices of new_mols_helper -> created array is as big as
+    # the indexing array
+    new_mols_helper = energy[columnName][new_mols_helper.astype(int)]
+    new_mols_helper = np.array(new_mols_helper).reshape((new_basevect_grid_size[0], new_basevect_grid_size[1],
+                                                         new_basevect_grid_size[2]))
     # energy[columnName] = placeholder_energy
     print("done")
 
     # Define the isovalue for the surface (this value represents the energy level that forms the surface)
-    isovalue = 0.0
+    isovalue = fermi_energy
 
     # Apply the Marching Cubes algorithm
     try:

@@ -36,33 +36,18 @@ def create_mol_mesh(grid_size):
     # creating the mols dictionary
     mols = {'i': Imax[0] - Imin[0] + 1, 'j': Imax[1] - Imin[1] + 1, 'k': Imax[2] - Imin[2] + 1}
     mols["molgrid"] = xc_malloc_tensor3f(mols["i"], mols["j"], mols["k"])
-
+    mols["molgrid"] = np.zeros((grid_size[0]*2-1)*(grid_size[1]*2-1)*(grid_size[2]*2-1))
+    p = 0
     for i1, i in enumerate(range(Imin[0], Imax[0] + 1)):
         ii = i if i >= 0 else grid_size_minus_one[0] + i
         for j1, j in enumerate(range(Imin[1], Imax[1] + 1)):
             jj = j if j >= 0 else grid_size_minus_one[1] + j
             for k1, k in enumerate(range(Imin[2], Imax[2] + 1)):
                 kk = k if k >= 0 else grid_size_minus_one[2] + k
-                mols['molgrid'][i1][j1][k1] = band_grid[ii, jj, kk]
-    """
-    mols = {'molgrid': np.empty((Imax[0] - Imin[0] + 1, Imax[1] - Imin[1] + 1, Imax[2] - Imin[2] + 1))}
+                #mols['molgrid'][i1][j1][k1] = band_grid[ii, jj, kk]
+                mols["molgrid"][p] = band_grid[ii, jj, kk]
+                p +=1
 
-    # Create index arrays for i1, j1, k1
-    i1_range = np.arange(Imin[0], Imax[0] + 1)
-    j1_range = np.arange(Imin[1], Imax[1] + 1)
-    k1_range = np.arange(Imin[2], Imax[2] + 1)
-
-    # Compute the wrapped indices
-    ii = np.where(i1_range >= 0, i1_range, grid_size_minus_one[0] + i1_range)
-    jj = np.where(j1_range >= 0, j1_range, grid_size_minus_one[1] + j1_range)
-    kk = np.where(k1_range >= 0, k1_range, grid_size_minus_one[2] + k1_range)
-
-    # Use broadcasting to create the full 3D index grid
-    ii_grid, jj_grid, kk_grid = np.meshgrid(ii, jj, kk, indexing='ij')
-
-    # Assign values from band_grid to mols['molgrid'] using the computed indices
-    mols['molgrid'] = band_grid[ii_grid, jj_grid, kk_grid]
-    """
     return mols
 
 
