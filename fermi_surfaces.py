@@ -1,57 +1,11 @@
-import math
-
 import numpy as np
 import trimesh
 from skimage import measure
 from pymatgen.core import Lattice
 
 
-def fraction(rez_lattice_vect, s_grid_size):
-    """
-    used in iterative process of generating the grid for create_mesh()
-    :param rez_lattice_vect: second or third rez. lattice vector
-    :param s_grid_size: number of datapoints the grid should have along the corresponding lattice vector
-    :return: list of s_grid_size points starting at 0 and adds rez_lattice_vect/s_grid_size for each entry plus the
-             entry before that
-    """
-    # fractions to go one grid-Point further each iteration (loop)
-    fraction_list = (np.ones((s_grid_size, 3)) * rez_lattice_vect / s_grid_size).tolist()
-    fraction_list[0] = [0, 0, 0]
-
-    helper_var = []
-    for entry in fraction_list:
-        if fraction_list.index(entry) == 0:
-            helper_var.append(entry)
-        else:
-            # adds the last value to the current value in the loop to increase the fraction by each iteration
-            helper_var.append((np.array(entry) + np.array(helper_var[-1])).tolist())
-    fraction_list = helper_var
-    return fraction_list
-
-
 def xc_malloc_tensor3f(x, y, z):
     return np.zeros((x, y, z), dtype=float)
-
-
-def create_basevect_mesh(rez_lattice, grid_size):
-    """
-    Creates the final mesh, where the fermi surface is stored into
-    :param rez_lattice: list of 3, 3D reciprocal lattice vectors
-    :param grid_size: list of 3 items for grid dimensions
-    :return: final fermi surface mesh
-    """
-    grid_size = [int(2*grid_size_n-1) for grid_size_n in grid_size]
-    mesh = []
-
-    fraction1 = fraction(rez_lattice[1], grid_size[1])  # for generating basic mesh
-    fraction2 = fraction(rez_lattice[2], grid_size[2])
-
-    for i in range(0, grid_size[0]):
-        for j in range(0, grid_size[1]):
-            for k in range(0, grid_size[2]):
-                v = np.array(rez_lattice[0]) / grid_size[0] * i + fraction1[j] + fraction2[k]
-                mesh.append(v)
-    return mesh
 
 
 def create_mol_mesh(grid_size):
@@ -67,33 +21,48 @@ def create_mol_mesh(grid_size):
     grid_size = [int(grid_size_n) for grid_size_n in grid_size]
     Imin = [0] * 3
     Imax = [0] * 3
-    band_grid = xc_malloc_tensor3f(grid_size[0], grid_size[1], grid_size[2])
 
     # loop that creates the mesh
-    p = 0
-    for i in range(0, grid_size[0]):
-        for j in range(0, grid_size[1]):
-            for k in range(0, grid_size[2]):
-                band_grid[i, j, k] = p  # placeholder to create mol grid
-                p += 1
+
+    band_grid = np.arange((grid_size[0])*(grid_size[1])*(grid_size[2]))
+    band_grid = band_grid.reshape((grid_size[0], grid_size[1], grid_size[2]))
 
     grid_size_minus_one = [grid - 1 for grid in grid_size]
 
     for k in range(3):
-        Imin[k] = -grid_size_minus_one[k]
-        Imax[k] = grid_size_minus_one[k]
+        Imin[k] = -int(grid_size_minus_one[k])
+        Imax[k] = int(grid_size_minus_one[k])
 
     # creating the mols dictionary
     mols = {'i': Imax[0] - Imin[0] + 1, 'j': Imax[1] - Imin[1] + 1, 'k': Imax[2] - Imin[2] + 1}
     mols["molgrid"] = xc_malloc_tensor3f(mols["i"], mols["j"], mols["k"])
 
-    for i1, i in enumerate(range(int(Imin[0]), int(Imax[0]) + 1)):
+    for i1, i in enumerate(range(Imin[0], Imax[0] + 1)):
         ii = i if i >= 0 else grid_size_minus_one[0] + i
-        for j1, j in enumerate(range(int(Imin[1]), int(Imax[1]) + 1)):
+        for j1, j in enumerate(range(Imin[1], Imax[1] + 1)):
             jj = j if j >= 0 else grid_size_minus_one[1] + j
-            for k1, k in enumerate(range(int(Imin[2]), int(Imax[2]) + 1)):
+            for k1, k in enumerate(range(Imin[2], Imax[2] + 1)):
                 kk = k if k >= 0 else grid_size_minus_one[2] + k
                 mols['molgrid'][i1][j1][k1] = band_grid[ii, jj, kk]
+    """
+    mols = {'molgrid': np.empty((Imax[0] - Imin[0] + 1, Imax[1] - Imin[1] + 1, Imax[2] - Imin[2] + 1))}
+
+    # Create index arrays for i1, j1, k1
+    i1_range = np.arange(Imin[0], Imax[0] + 1)
+    j1_range = np.arange(Imin[1], Imax[1] + 1)
+    k1_range = np.arange(Imin[2], Imax[2] + 1)
+
+    # Compute the wrapped indices
+    ii = np.where(i1_range >= 0, i1_range, grid_size_minus_one[0] + i1_range)
+    jj = np.where(j1_range >= 0, j1_range, grid_size_minus_one[1] + j1_range)
+    kk = np.where(k1_range >= 0, k1_range, grid_size_minus_one[2] + k1_range)
+
+    # Use broadcasting to create the full 3D index grid
+    ii_grid, jj_grid, kk_grid = np.meshgrid(ii, jj, kk, indexing='ij')
+
+    # Assign values from band_grid to mols['molgrid'] using the computed indices
+    mols['molgrid'] = band_grid[ii_grid, jj_grid, kk_grid]
+    """
     return mols
 
 
@@ -117,37 +86,6 @@ def triangulate_faces(facets):
     return triangles
 
 
-def brillouin_intersect_mesh(brillouin_zone):
-    # outdated
-    """
-    modulates a 3D mesh in shape of the 1. BZ to tell whether a point lies within the 1. BZ or not
-
-    :param brillouin_zone: list of all facets of the 1. BZ, within the facets shall be all vertices of the facet
-    :return: modulated 1. BZ as a Trimesh object
-    """
-    # creates a list with information on how the lines are connected
-    facet_order_list = []
-    helper_brillouin_zone = []
-
-    number_val_BZ = sum(len(facet) for facet in brillouin_zone)
-
-    j = 0
-    for facet in brillouin_zone:
-        facet_order = [i for i in range(j, j + len(facet)) if i < number_val_BZ + 1]
-        j += len(facet_order)
-        if len(facet_order) != 0:
-            facet_order_list.append(facet_order)
-        helper_brillouin_zone.extend(facet)
-    brillouin_zone = helper_brillouin_zone
-
-    # Triangulate the face
-    triangulated_faces = triangulate_faces(facet_order_list)
-
-    brillouin_zone_object = trimesh.Trimesh(vertices=brillouin_zone, faces=triangulated_faces)
-
-    return brillouin_zone_object
-
-
 def check_fermi_surface(energies, fermi_energy):
     # outdated
     """
@@ -164,30 +102,6 @@ def check_fermi_surface(energies, fermi_energy):
             index_for_k_position.append(i)
         i += 1
     return index_for_k_position
-
-
-def marching_cubes_clip(rez_vec, facets, vertices, brillouin_zone_object, grid_size):
-
-    ### not in use, different approach
-    vertices = vertices.tolist()
-    facets = facets.tolist()
-    j = 0
-    for i, vertex in enumerate(vertices):  # scale mesh to first BZ
-        vertex[0] = vertex[0] / grid_size * np.sqrt(rez_vec[0][0] ** 2 + rez_vec[0][1] ** 2 + rez_vec[0][2] ** 2)
-        vertex[1] = vertex[1] / grid_size * np.sqrt(rez_vec[0][0] ** 2 + rez_vec[0][1] ** 2 + rez_vec[0][2] ** 2)
-        vertex[2] = vertex[2] / grid_size * np.sqrt(rez_vec[0][0] ** 2 + rez_vec[0][1] ** 2 + rez_vec[0][2] ** 2)
-        vertices[i] = vertex
-        if brillouin_zone_object.contains([vertex]):
-            pass
-        else:
-            #facets = np.delete(facets, math.ceil(i / 3))  # round up to next integer, so that the right facet is deleted
-            #vertices = np.delete(vertices, i)
-            for k, facet in enumerate(facets):
-                if (facet[0] or facet[1] or facet[2]) == i:
-                    del facets[k]
-            del facets[math.ceil((i-j) / 3)]
-            del vertices[i-j]
-    return vertices, facets
 
 
 def abs_vect(vector):
@@ -266,11 +180,3 @@ def face_center_BZ(brillouin_zone_facets):
         face_centers.append([xS, yS, zS])
 
     return face_centers
-
-
-
-
-
-
-
-
