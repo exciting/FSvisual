@@ -8,7 +8,7 @@ def xc_malloc_tensor3f(x, y, z):
     return np.zeros((x, y, z), dtype=float)
 
 
-def create_mol_mesh(grid_size):
+def create_cartesian_mesh(grid_size):
     """
     creates a mesh within the reciprocal unit cell for any reciprocal lattice
     creates second mesh (mol) where energy placeholders are stored to be replaced by real energy values
@@ -33,11 +33,7 @@ def create_mol_mesh(grid_size):
         Imin[k] = -int(grid_size_minus_one[k])
         Imax[k] = int(grid_size_minus_one[k])
 
-    # creating the mols dictionary
-    mols = {'i': Imax[0] - Imin[0] + 1, 'j': Imax[1] - Imin[1] + 1, 'k': Imax[2] - Imin[2] + 1}
-    mols["molgrid"] = xc_malloc_tensor3f(mols["i"], mols["j"], mols["k"])
-    mols["molgrid"] = np.zeros((grid_size[0] * 2 - 1) * (grid_size[1] * 2 - 1) * (grid_size[2] * 2 - 1))
-
+    # creating the mols
     mesh_axis_one = np.arange(Imin[0], Imax[0] + 1)
     mesh_axis_two = np.arange(Imin[1], Imax[1] + 1)
     mesh_axis_three = np.arange(Imin[2], Imax[2] + 1)
@@ -48,8 +44,9 @@ def create_mol_mesh(grid_size):
 
     index_mesh = np.ix_(mesh_axis_one, mesh_axis_two, mesh_axis_three)
 
-    mols["molgrid"] = band_grid[index_mesh].flatten()
-    return mols
+    cartesian_mesh = band_grid[index_mesh].flatten()
+
+    return cartesian_mesh
 
 
 def triangulate_faces(facets):

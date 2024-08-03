@@ -1,12 +1,12 @@
 from brilouin_zone import first_bz
-from fermi_surfaces import create_mol_mesh, face_center_BZ
+from fermi_surfaces import create_cartesian_mesh, face_center_BZ
 from visualisation import plot
 from input import read_energy_numbers
 import numpy as np
 import trimesh
 from skimage import measure
-import pandas as pd
 import pymeshlab
+from copy import deepcopy
 
 source = "FERMISURF_Po_sc.bxsf"
 data = read_energy_numbers(source)
@@ -20,23 +20,22 @@ grid_size = data[3]
 brillouin_zone = []
 brillouin_zone.extend(first_bz(rez_base_vect))
 
-new_mols = create_mol_mesh(grid_size)
+new_cartesian_mesh = create_cartesian_mesh(grid_size)
 new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
 fermi_surface_list = []
 
-from copy import deepcopy
 
-new_mols_helper = []
+new_cart_mesh_helper = []
 band_index = []
 for index, columnName in enumerate(energy.columns):
 
     placeholder_energy = []
-    new_mols_helper = deepcopy(new_mols["molgrid"])
-    # creates an array with energies taken by the corresponding indices of new_mols_helper -> created array is as big as
-    # the indexing array
-    new_mols_helper = energy[columnName][new_mols_helper.astype(int)]
-    new_mols_helper = np.array(new_mols_helper).reshape((new_basevect_grid_size[0], new_basevect_grid_size[1],
-                                                         new_basevect_grid_size[2]))
+    new_cart_mesh_helper = deepcopy(new_cartesian_mesh)
+    # creates an array with energies taken by the corresponding indices of new_cart_mesh_helper -> created array is
+    # as big as the indexing array
+    new_cart_mesh_helper = energy[columnName][new_cart_mesh_helper.astype(int)]
+    new_cart_mesh_helper = np.array(new_cart_mesh_helper).reshape((new_basevect_grid_size[0], new_basevect_grid_size[1],
+                                                                   new_basevect_grid_size[2]))
     # energy[columnName] = placeholder_energy
     print("done")
 
@@ -45,22 +44,21 @@ for index, columnName in enumerate(energy.columns):
 
     # Apply the Marching Cubes algorithm
     try:
-        vertices, faces, normals, values = measure.marching_cubes(new_mols_helper, level=isovalue)
+        vertices, faces, normals, values = measure.marching_cubes(new_cart_mesh_helper, level=isovalue)
     except ValueError:
         "nothing here"
         continue
 
     band_index.append(index + 1)  # for the plot
-    new_vertices = deepcopy(vertices)
 
     # transform vertices, so it fits the base_vect_grid
 
-    test = np.dot(vertices, np.array(rez_base_vect))
+    new_basevect_mesh = np.dot(vertices, np.array(rez_base_vect))
 
     ms = pymeshlab.MeshSet()
-    ms.add_mesh(pymeshlab.Mesh(test, faces))
+    ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
 
-    ms.meshing_surface_subdivision_loop(iterations=3)
+    ms.meshing_surface_subdivision_loop(iterations=3)   # strength of smoothing should adapt with input mesh size
     ms.apply_coord_laplacian_smoothing_scale_dependent(stepsmoothnum=3)  # Beispiel-Filter für anisotrope Diffusion
 
     smoothed_mesh = ms.current_mesh()
