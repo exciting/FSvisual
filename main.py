@@ -8,7 +8,7 @@ from skimage import measure
 import pandas as pd
 import pymeshlab
 
-source = "FERMISURF_Au_fcc.bxsf"
+source = "FERMISURF_Po_sc.bxsf"
 data = read_energy_numbers(source)
 energy = data[0]
 fermi_energy = data[1]

@@ -24,7 +24,7 @@ def create_mol_mesh(grid_size):
 
     # loop that creates the mesh
 
-    band_grid = np.arange((grid_size[0])*(grid_size[1])*(grid_size[2]))
+    band_grid = np.arange((grid_size[0]) * (grid_size[1]) * (grid_size[2]))
     band_grid = band_grid.reshape((grid_size[0], grid_size[1], grid_size[2]))
 
     grid_size_minus_one = [grid - 1 for grid in grid_size]
@@ -36,18 +36,19 @@ def create_mol_mesh(grid_size):
     # creating the mols dictionary
     mols = {'i': Imax[0] - Imin[0] + 1, 'j': Imax[1] - Imin[1] + 1, 'k': Imax[2] - Imin[2] + 1}
     mols["molgrid"] = xc_malloc_tensor3f(mols["i"], mols["j"], mols["k"])
-    mols["molgrid"] = np.zeros((grid_size[0]*2-1)*(grid_size[1]*2-1)*(grid_size[2]*2-1))
-    p = 0
-    for i1, i in enumerate(range(Imin[0], Imax[0] + 1)):
-        ii = i if i >= 0 else grid_size_minus_one[0] + i
-        for j1, j in enumerate(range(Imin[1], Imax[1] + 1)):
-            jj = j if j >= 0 else grid_size_minus_one[1] + j
-            for k1, k in enumerate(range(Imin[2], Imax[2] + 1)):
-                kk = k if k >= 0 else grid_size_minus_one[2] + k
-                #mols['molgrid'][i1][j1][k1] = band_grid[ii, jj, kk]
-                mols["molgrid"][p] = band_grid[ii, jj, kk]
-                p +=1
+    mols["molgrid"] = np.zeros((grid_size[0] * 2 - 1) * (grid_size[1] * 2 - 1) * (grid_size[2] * 2 - 1))
 
+    mesh_axis_one = np.arange(Imin[0], Imax[0] + 1)
+    mesh_axis_two = np.arange(Imin[1], Imax[1] + 1)
+    mesh_axis_three = np.arange(Imin[2], Imax[2] + 1)
+
+    mesh_axis_one = np.where(mesh_axis_one >= 0, mesh_axis_one, mesh_axis_one + grid_size_minus_one[0])
+    mesh_axis_two = np.where(mesh_axis_two >= 0, mesh_axis_two, mesh_axis_two + grid_size_minus_one[1])
+    mesh_axis_three = np.where(mesh_axis_three >= 0, mesh_axis_three, mesh_axis_three + grid_size_minus_one[2])
+
+    index_mesh = np.ix_(mesh_axis_one, mesh_axis_two, mesh_axis_three)
+
+    mols["molgrid"] = band_grid[index_mesh].flatten()
     return mols
 
 
@@ -94,11 +95,10 @@ def abs_vect(vector):
     :param vector: takes 3D vector as a list or array
     :return: absolute value of that vector
     """
-    return np.sqrt(vector[0]**2 + vector[1]**2 + vector[2]**2)
+    return np.sqrt(vector[0] ** 2 + vector[1] ** 2 + vector[2] ** 2)
 
 
 def triangle_area(triangle):
-
     """
     calculates the area of a triangle via vertices
     :param triangle: list of 3 vertices
@@ -111,27 +111,25 @@ def triangle_area(triangle):
     P2 = np.array(triangle[1])
     P3 = np.array(triangle[2])
 
-    area = 1/2 * np.sqrt(abs_vect(P2-P1)**2 * abs_vect(P3-P1)**2 - np.dot((P2-P1), (P3-P1))**2)
+    area = 1 / 2 * np.sqrt(abs_vect(P2 - P1) ** 2 * abs_vect(P3 - P1) ** 2 - np.dot((P2 - P1), (P3 - P1)) ** 2)
     return area
 
 
 def triangle_center(triangle):
-
     """
     calculates the center of every triangle
     :param triangle: list of 3 vertices
     :return: center point of a triangle
     """
 
-    xS = 1/3 * (triangle[0][0] + triangle[1][0] + triangle[2][0])
-    yS = 1/3 * (triangle[0][1] + triangle[1][1] + triangle[2][1])
-    zS = 1/3 * (triangle[0][2] + triangle[1][2] + triangle[2][2])
+    xS = 1 / 3 * (triangle[0][0] + triangle[1][0] + triangle[2][0])
+    yS = 1 / 3 * (triangle[0][1] + triangle[1][1] + triangle[2][1])
+    zS = 1 / 3 * (triangle[0][2] + triangle[1][2] + triangle[2][2])
 
     return [xS, yS, zS]
 
 
 def face_center_BZ(brillouin_zone_facets):
-
     """
     function to calculate the center of every facet
     :param brillouin_zone_facets: list with all facets (filled with points, not indices)
@@ -146,12 +144,12 @@ def face_center_BZ(brillouin_zone_facets):
     for facet in brillouin_zone_facets:  # goes through every facet and calculates the center of it
         triangle_areas = []
         triangle_centers = []
-        for triangle in triangle_list[j:j+len(facet)-2]:  # goes through every triangle of each facet
+        for triangle in triangle_list[j:j + len(facet) - 2]:  # goes through every triangle of each facet
             # triangle area:
             if triangle_area(triangle) != 0:
                 triangle_areas.append(triangle_area(triangle))  # triangle area
                 triangle_centers.append(triangle_center(triangle))  # triangle center
-        j += len(facet)-2
+        j += len(facet) - 2
 
         x_coord = np.array([point[0] for point in triangle_centers])
         y_coord = np.array([point[1] for point in triangle_centers])
