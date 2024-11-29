@@ -11,11 +11,8 @@ def xc_malloc_tensor3f(x, y, z):
 def create_cartesian_mesh(grid_size):
     """
     creates a mesh within the reciprocal unit cell for any reciprocal lattice
-    creates second mesh (mol) where energy placeholders are stored to be replaced by real energy values
-    later on -> very important for fermi_surface shape
-
     :param grid_size: number of datapoints the grid should have (list of 3 number for each lattice vector)
-    :return: standard mesh and mol mesh
+    :return: standard mesh
     """
 
     grid_size = [int(grid_size_n) for grid_size_n in grid_size]
