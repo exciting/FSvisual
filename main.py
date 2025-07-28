@@ -1,5 +1,5 @@
 from brilouin_zone import first_bz
-from fermi_surfaces import create_cartesian_mesh, face_center_BZ
+from mesh_algorythms import create_cartesian_mesh, face_center_BZ
 from visualisation import plot
 from input import read_energy_numbers
 import numpy as np
@@ -7,6 +7,7 @@ import trimesh
 from skimage import measure
 import pymeshlab
 from copy import deepcopy
+from Fermisurface_class import FermiSurface
 
 
 def main(filepath, save_fermisurf_path):
@@ -18,10 +19,12 @@ def main(filepath, save_fermisurf_path):
 
     # coordinates of the first Brillouin zone
 
-    brillouin_zone = []
-    brillouin_zone.extend(first_bz(rez_base_vect))
+    new_fermisurface = FermiSurface(data[0], data[1], data[2], data[3])
 
-    new_cartesian_mesh = create_cartesian_mesh(grid_size)
+    brillouin_zone = []
+    brillouin_zone.extend(new_fermisurface.brillouin_zone())
+
+    new_cartesian_mesh = new_fermisurface.cartesian_mesh()
     new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
     fermi_surface_list = []
 
