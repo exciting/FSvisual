@@ -1,11 +1,6 @@
 import numpy as np
 import trimesh
-from skimage import measure
-from pymatgen.core import Lattice
-
-
-def xc_malloc_tensor3f(x, y, z):
-    return np.zeros((x, y, z), dtype=float)
+import pymeshlab
 
 
 def create_cartesian_mesh(grid_size):
@@ -64,24 +59,6 @@ def triangulate_faces(facets):
             for i in range(1, len(facet) - 1):
                 triangles.append([facet[0], facet[i], facet[i + 1]])
     return triangles
-
-
-def check_fermi_surface(energies, fermi_energy):
-    # outdated
-    """
-    checks whether the energy in a band is equal to the fermi_energy (within uncertainties)
-    :param fermi_energy: energy value that FERMISURF.bxsf defines as fermiy_energy
-    :param energies: all energy values of one band
-    :return: list of indices for k-points to choose from the grid
-    """
-
-    index_for_k_position = []
-    i = 0
-    for energy in energies:
-        if fermi_energy - 0.01 <= energy <= fermi_energy + 0.01:
-            index_for_k_position.append(i)
-        i += 1
-    return index_for_k_position
 
 
 def abs_vect(vector):
@@ -157,3 +134,51 @@ def face_center_BZ(brillouin_zone_facets):
         face_centers.append([xS, yS, zS])
 
     return face_centers
+
+
+def scale(scale_factor, fermi_surface):
+    """
+    Scales the Fermi surface in size
+    :param scale_factor: factor by which the surface scales
+    :param fermi_surface: Fermi surface as a Trimesh object
+    :return: Fermi surface as Trimes object
+    """
+    # scale_factors = 2 / new_basevect_grid_size  # 2 wegen Durchmesser 1. BZ  # nochmal gucken.
+
+    # Create a scaling matrix
+    scaling_matrix = np.eye(4)
+    scaling_matrix[:3, :3] *= scale_factor
+
+    # Apply the scaling transformation to the mesh
+    fermi_surface.apply_transform(scaling_matrix)
+
+    return fermi_surface
+
+
+def centering(fermi_surface):
+    """
+    centers the Fermi surface to the origin
+    :param fermi_surface: Fermi surface as Trimesh object
+    :return: centered Fermi surface as Trimesh object
+    """
+
+    fermi_surface.apply_translation(
+        [-fermi_surface.centroid[0], -fermi_surface.centroid[1], -fermi_surface.centroid[2]])
+
+    return fermi_surface
+
+
+def subdivision_surface(rez_base_vect, vertices, faces, iterations):
+    new_basevect_mesh = np.dot(vertices, np.array(rez_base_vect))
+
+    ms = pymeshlab.MeshSet()
+    ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
+
+    # strength of smoothing should adapt with input mesh size
+    ms.meshing_surface_subdivision_loop(iterations=iterations)
+
+    smoothed_mesh = ms.current_mesh()
+    fermi_surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
+                                    faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
+
+    return fermi_surface
