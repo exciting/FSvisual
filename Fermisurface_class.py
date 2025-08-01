@@ -1,4 +1,5 @@
 from brilouin_zone import first_bz
+from visualisation import plot
 from mesh_algorythms import create_cartesian_mesh, scale, centering, \
     face_center_BZ, subdivision_surface
 from skimage import measure
@@ -16,6 +17,8 @@ class FermiSurface:
         self.grid_size = grid_size
         self.brillouin_zone = None  # calculated later on
         self.surface = None  # calculated later on
+        self.fermi_surface_list = None
+        self.band_index = None
 
     def set_surface(self, fermi_surface):
         self.surface = fermi_surface
@@ -87,3 +90,40 @@ class FermiSurface:
         new_surface = subdivision_surface(self.rez_base_vect, vertices, faces, iterations)
         self.surface = new_surface
         return new_surface
+
+    def build_surface(self):
+        grid_size = self.grid_size
+        new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
+
+        self.band_index = []
+        self.fermi_surface_list = []
+        for index, columnName in enumerate(self.energy_values.columns):
+
+            # Apply the Marching Cubes algorithm
+            try:
+                self.marching_cubes(columnName)
+            except ValueError:
+                "nothing here"
+                continue
+
+            # transform vertices, so it fits the base_vect_grid
+            self.subdivide_surface(2)
+
+            # translation and shrinkage
+
+            # 2 wegen Durchmesser 1. BZ  # nochmal gucken.
+            self.scale_surface(2 / new_basevect_grid_size)
+
+            # translation
+            self.center_surface()
+
+            self.slice_surface()
+
+            self.fermi_surface_list.append(self.surface)
+            self.band_index.append(index + 1)  # for the plot
+        return self.fermi_surface_list
+
+    def visualization(self, filepath, save_fermisurf_path):
+        plot(self.fermi_surface_list, self.brillouin_zone, self.band_index, filepath, save_fermisurf_path)
+
+

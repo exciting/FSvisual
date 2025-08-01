@@ -11,6 +11,10 @@ def main(filepath, save_fermisurf_path):
     new_fermisurface = FermiSurface(data[0], data[1], data[2], data[3])
     new_fermisurface.set_brillouin_zone()
 
+    new_fermisurface.build_surface()
+    new_fermisurface.visualization(filepath, save_fermisurf_path)
+
+    '''
     grid_size = new_fermisurface.grid_size
     new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
 
@@ -25,25 +29,23 @@ def main(filepath, save_fermisurf_path):
             "nothing here"
             continue
 
-        band_index.append(index + 1)  # for the plot
-
         # transform vertices, so it fits the base_vect_grid
-
         new_fermisurface.subdivide_surface(2)
 
         # translation and shrinkage
 
         # 2 wegen Durchmesser 1. BZ  # nochmal gucken.
-
         new_fermisurface.scale_surface(2 / new_basevect_grid_size)
 
         # translation
-
         new_fermisurface.center_surface()
 
         new_fermisurface.slice_surface()
 
         fermi_surface_list.append(new_fermisurface.surface)
-
+        band_index.append(index + 1)  # for the plot
     # visualization
-    plot(fermi_surface_list, new_fermisurface.brillouin_zone, band_index, filepath, save_fermisurf_path)
+    new_fermisurface.fermi_surface_list = fermi_surface_list
+    new_fermisurface.band_index = band_index
+    new_fermisurface.visualization(filepath, save_fermisurf_path)
+    '''
