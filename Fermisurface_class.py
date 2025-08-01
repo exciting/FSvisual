@@ -1,8 +1,10 @@
 from brilouin_zone import first_bz
-from mesh_algorythms import create_cartesian_mesh, scale, centering,\
-                            face_center_BZ, subdivision_surface
+from mesh_algorythms import create_cartesian_mesh, scale, centering, \
+    face_center_BZ, subdivision_surface
 from skimage import measure
 import numpy as np
+from copy import deepcopy
+import trimesh
 
 
 class FermiSurface:
@@ -24,8 +26,26 @@ class FermiSurface:
     def cartesian_mesh(self):
         return create_cartesian_mesh(self.grid_size)
 
-    def marching_cubes(self, mesh):
-        return measure.marching_cubes(mesh, level=self.fermi_energy)
+    def marching_cubes(self, energyColumn):
+        grid_size = self.grid_size
+        new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
+
+        new_cart_mesh_helper = deepcopy(self.cartesian_mesh())
+        # creates an array with energies taken by the corresponding indices of new_cart_mesh_helper -> created array is
+        # as big as the indexing array
+        new_cart_mesh_helper = self.energy_values[energyColumn][new_cart_mesh_helper.astype(int)]
+        new_cart_mesh_helper = np.array(new_cart_mesh_helper).reshape(
+            (new_basevect_grid_size[0], new_basevect_grid_size[1],
+             new_basevect_grid_size[2]))
+        print("done")
+
+        # Apply the Marching Cubes algorithm
+        vertices, faces, normals, values = measure.marching_cubes(new_cart_mesh_helper, level=self.fermi_energy)
+
+        self.surface = trimesh.Trimesh(vertices=np.asarray(vertices),
+                                       faces=np.asarray(faces), process=False)
+
+        return self.surface
 
     def scale_surface(self, scale_factor):
         if self.surface is None:
@@ -61,7 +81,9 @@ class FermiSurface:
             self.surface = self.surface.slice_plane(plane_origin=self.brillouin_zone[1][i][0],
                                                     plane_normal=facets_normal * (-1))
 
-    def subdivide_surface(self, vertices, faces, iterations):
+    def subdivide_surface(self, iterations):
+        vertices = self.surface.vertices
+        faces = self.surface.faces
         new_surface = subdivision_surface(self.rez_base_vect, vertices, faces, iterations)
         self.surface = new_surface
         return new_surface
