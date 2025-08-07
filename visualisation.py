@@ -4,7 +4,7 @@ import plotly.io as pio
 import os
 
 
-def plot(fermi_surface_list, brillouin_zone_object, band_index, filepath, save_fermisurf_path):
+def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
     mesh_fermi_surfaces = []
     for index, fermi_surface in enumerate(fermi_surface_list):
         x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:,
@@ -77,15 +77,23 @@ def plot(fermi_surface_list, brillouin_zone_object, band_index, filepath, save_f
             )
         )
     )
+    return fig
 
-    #fig.show()
+
+def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
+                         scene_camera_SVG=None):
+
     filename = os.path.basename(filepath)
     filename = filename.split(".")[0]
-    pio.write_html(fig, file=f'{save_fermisurf_path}/{filename}.html', auto_open=False, config={'displayModeBar': False})
+    pio.write_html(fig, file=f'{save_figure_directory}/{filename}.html', auto_open=False,
+                   config={'displayModeBar': False})
 
-    fig.update_layout(
-        showlegend=False,
-        scene_camera=dict(eye=dict(x=1, y=1, z=1)),  # change camera scene
-        margin=dict(l=0, r=0, b=0, t=0)  # set the space on the edges to 0 (so that the plot fills out the image)
-    )
-    #fig.write_image(f'{save_fermisurf_path}/{filename}.svg', format="svg", width=500, height=800)
+    if create_SVG:
+        if scene_camera_SVG is None:
+            scene_camera_SVG = dict(eye=dict(x=1, y=1, z=1))
+        fig.update_layout(
+            showlegend=False,
+            scene_camera=scene_camera_SVG,  # change camera scene
+            margin=dict(l=0, r=0, b=0, t=0)  # set the space on the edges to 0 (so that the plot fills out the image)
+        )
+        fig.write_image(f'{save_figure_directory}/{filename}.svg', format="svg", width=500, height=800)

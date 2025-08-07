@@ -137,13 +137,6 @@ def face_center_BZ(brillouin_zone_facets):
 
 
 def scale(scale_factor, fermi_surface):
-    """
-    Scales the Fermi surface in size
-    :param scale_factor: factor by which the surface scales
-    :param fermi_surface: Fermi surface as a Trimesh object
-    :return: Fermi surface as Trimes object
-    """
-    # scale_factors = 2 / new_basevect_grid_size  # 2 wegen Durchmesser 1. BZ  # nochmal gucken.
 
     # Create a scaling matrix
     scaling_matrix = np.eye(4)
@@ -163,18 +156,25 @@ def centering(fermi_surface):
     """
 
     fermi_surface.apply_translation(
-        [-fermi_surface.centroid[0], -fermi_surface.centroid[1], -fermi_surface.centroid[2]])
-
+        [-fermi_surface.centroid[i] for i in range(3)])
     return fermi_surface
 
 
 def subdivision_surface(rez_base_vect, vertices, faces, iterations):
+    """
+    divides each triangle of the parsed triangle mesh in to two triangles and therefore
+    providing a higher resolution
+    :param rez_base_vect: reciprocal basis vectors
+    :param vertices: vertices of the triangle mesh
+    :param faces: faces of the triangles
+    :param iterations: how many times this algorithm is applied
+    :return: the higher resolution triangle mesh
+    """
     new_basevect_mesh = np.dot(vertices, np.array(rez_base_vect))
 
     ms = pymeshlab.MeshSet()
     ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
 
-    # strength of smoothing should adapt with input mesh size
     ms.meshing_surface_subdivision_loop(iterations=iterations)
 
     smoothed_mesh = ms.current_mesh()

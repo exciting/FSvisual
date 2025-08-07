@@ -1,5 +1,5 @@
 from brilouin_zone import first_bz
-from visualisation import plot
+from visualisation import build_plotly_figure, write_figure_to_file
 from mesh_algorythms import create_cartesian_mesh, scale, centering, \
     face_center_BZ, subdivision_surface
 from skimage import measure
@@ -48,21 +48,19 @@ class FermiSurface:
         self.surface = trimesh.Trimesh(vertices=np.asarray(vertices),
                                        faces=np.asarray(faces), process=False)
 
-        return self.surface
+        return self
 
     def scale_surface(self, scale_factor):
         if self.surface is None:
             raise ValueError("surface is not yet defined")
-        new_surface = scale(scale_factor, self.surface)
-        self.surface = new_surface
-        return new_surface
+        self.surface = scale(scale_factor, self.surface)
+        return self
 
     def center_surface(self):
         if self.surface is None:
             raise ValueError("surface is not yet defined")
-        new_surface = centering(self.surface)
-        self.surface = new_surface
-        return new_surface
+        self.surface = centering(self.surface)
+        return self
 
     def slice_surface(self):
         """
@@ -83,13 +81,13 @@ class FermiSurface:
 
             self.surface = self.surface.slice_plane(plane_origin=self.brillouin_zone[1][i][0],
                                                     plane_normal=facets_normal * (-1))
+        return self
 
     def subdivide_surface(self, iterations):
         vertices = self.surface.vertices
         faces = self.surface.faces
-        new_surface = subdivision_surface(self.rez_base_vect, vertices, faces, iterations)
-        self.surface = new_surface
-        return new_surface
+        self.surface = subdivision_surface(self.rez_base_vect, vertices, faces, iterations)
+        return self
 
     def build_surface(self):
         grid_size = self.grid_size
@@ -121,9 +119,11 @@ class FermiSurface:
 
             self.fermi_surface_list.append(self.surface)
             self.band_index.append(index + 1)  # for the plot
-        return self.fermi_surface_list
+        return self
 
     def visualization(self, filepath, save_fermisurf_path):
-        plot(self.fermi_surface_list, self.brillouin_zone, self.band_index, filepath, save_fermisurf_path)
+        figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index)
+        write_figure_to_file(figure, filepath, save_fermisurf_path)
+
 
 

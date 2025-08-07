@@ -1,6 +1,4 @@
-from visualisation import plot
 from input import read_energy_numbers
-import numpy as np
 from Fermisurface_class import FermiSurface
 
 
