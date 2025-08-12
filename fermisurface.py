@@ -4,11 +4,16 @@ from mesh_algorythms import create_cartesian_mesh, scale, centering, \
     face_center_BZ, subdivision_surface
 from skimage import measure
 import numpy as np
-from copy import deepcopy
 import trimesh
 
 
 class FermiSurface:
+    """
+    In order to visualize Fermi surfaces, the band energy data, the Fermi energy, the reciprocal base vectors,
+    as well as the grid size need to be provided (eg. with the input.read_energy_numbers function) with creating
+    an object of the class. From there the method compute_brillouin_zone must be called to then call the build_surface()
+    method. Finally, for visualizing the Fermi surface, the visualization method can be called.
+    """
 
     def __init__(self, energy_values, fermi_energy, rez_base_vect, grid_size):
         self.energy_values = energy_values
@@ -20,10 +25,19 @@ class FermiSurface:
         self.fermi_surface_list = None
         self.band_index = None
 
-    def set_surface(self, fermi_surface):
+    @property
+    def surface(self):
+        return self.surface
+
+    @surface.setter
+    def surface(self, fermi_surface):
         self.surface = fermi_surface
 
-    def set_brillouin_zone(self):
+    @surface.deleter
+    def surface(self):
+        del self.surface
+
+    def compute_brillouin_zone(self):
         self.brillouin_zone = first_bz(self.rez_base_vect)
 
     def cartesian_mesh(self):
@@ -33,14 +47,12 @@ class FermiSurface:
         grid_size = self.grid_size
         new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
 
-        new_cart_mesh_helper = deepcopy(self.cartesian_mesh())
         # creates an array with energies taken by the corresponding indices of new_cart_mesh_helper -> created array is
         # as big as the indexing array
-        new_cart_mesh_helper = self.energy_values[energyColumn][new_cart_mesh_helper.astype(int)]
+        new_cart_mesh_helper = self.energy_values[energyColumn][self.cartesian_mesh().astype(int)]
         new_cart_mesh_helper = np.array(new_cart_mesh_helper).reshape(
             (new_basevect_grid_size[0], new_basevect_grid_size[1],
              new_basevect_grid_size[2]))
-        print("done")
 
         # Apply the Marching Cubes algorithm
         vertices, faces, normals, values = measure.marching_cubes(new_cart_mesh_helper, level=self.fermi_energy)
@@ -101,15 +113,12 @@ class FermiSurface:
             try:
                 self.marching_cubes(columnName)
             except ValueError:
-                "nothing here"
                 continue
 
             # transform vertices, so it fits the base_vect_grid
             self.subdivide_surface(2)
 
             # translation and shrinkage
-
-            # 2 wegen Durchmesser 1. BZ  # nochmal gucken.
             self.scale_surface(2 / new_basevect_grid_size)
 
             # translation
