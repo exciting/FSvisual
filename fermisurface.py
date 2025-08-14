@@ -117,7 +117,8 @@ class FermiSurface:
         self.surface = downsample_mesh(vertices, faces, facepercentage)
         return self
 
-    def build_surface(self):
+    def build_surface(self, subdivide_surface=False, subdivide_iterations=1,
+                      downsample_surface=False, down_sampling_percentage=50):
         grid_size = self.grid_size
         new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
 
@@ -131,9 +132,10 @@ class FermiSurface:
             except ValueError:
                 continue
 
-            # transform vertices, so it fits the base_vect_grid
-            self.subdivide_surface(0)
-            self.downsample_surface(facepercentage=2)
+            if subdivide_surface:
+                self.subdivide_surface(subdivide_iterations)
+            if downsample_surface:
+                self.downsample_surface(facepercentage=down_sampling_percentage)
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
