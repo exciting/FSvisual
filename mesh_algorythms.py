@@ -175,9 +175,31 @@ def subdivision_surface(rez_base_vect, vertices, faces, iterations):
     ms = pymeshlab.MeshSet()
     ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
 
-    ms.meshing_surface_subdivision_loop(iterations=iterations)
+    ms.meshing_surface_subdivision_loop(iterations=iterations, threshold=pymeshlab.PercentageValue(0))
 
     smoothed_mesh = ms.current_mesh()
+    fermi_surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
+                                    faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
+
+    return fermi_surface
+
+
+def downsample_mesh(rez_base_vect, vertices, faces, facenum):
+
+    new_basevect_mesh = np.dot(vertices, np.array(rez_base_vect))
+
+    ms = pymeshlab.MeshSet()
+    ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
+
+    m0 = ms.current_mesh()
+    print("vorher:", m0.vertex_number(), m0.face_number())
+
+    numFaces = int(facenum)
+    ms.meshing_decimation_quadric_edge_collapse(targetfacenum=numFaces, preserveboundary=True)
+
+    smoothed_mesh = ms.current_mesh()
+    print("vorher:", smoothed_mesh.vertex_number(), smoothed_mesh.face_number())
+
     fermi_surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
                                     faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
 

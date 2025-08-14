@@ -1,7 +1,7 @@
 from brilouin_zone import first_bz
 from visualisation import build_plotly_figure, write_figure_to_file
 from mesh_algorythms import create_cartesian_mesh, scale, centering, \
-    face_center_BZ, subdivision_surface
+    face_center_BZ, subdivision_surface, downsample_mesh
 from skimage import measure
 import numpy as np
 import trimesh
@@ -9,9 +9,20 @@ import trimesh
 
 class FermiSurface:
     """
+    Class for computing a ... a Fermi surface from xyz data.
+    (physical background)
+
+    usage:
+    ``
+    wie machen programme wie wannier90 das ganze
+
+    **Arguments**
+
+    energy_values: list(float)
+        List of energies of the electron bands
     In order to visualize Fermi surfaces, the band energy data, the Fermi energy, the reciprocal base vectors,
-    as well as the grid size need to be provided (eg. with the input.read_energy_numbers function) with creating
-    an object of the class. From there the method compute_brillouin_zone must be called to then call the build_surface()
+    as well as the grid size need to be provided (eg. with the `fsvisual.input.read_energy_numbers` function) with creating
+    an object of the class. From there the method compute_brillouin_zone must be called to then call the `build_surface()`
     method. Finally, for visualizing the Fermi surface, the visualization method can be called.
     """
 
@@ -25,23 +36,15 @@ class FermiSurface:
         self.fermi_surface_list = None
         self.band_index = None
 
-    @property
-    def surface(self):
-        return self.surface
-
-    @surface.setter
-    def surface(self, fermi_surface):
-        self.surface = fermi_surface
-
-    @surface.deleter
-    def surface(self):
-        del self.surface
-
     def compute_brillouin_zone(self):
         self.brillouin_zone = first_bz(self.rez_base_vect)
 
+    @property
     def cartesian_mesh(self):
         return create_cartesian_mesh(self.grid_size)
+
+    def set_k_grid_by_size(self, grid_size):
+        raise NotImplementedError
 
     def marching_cubes(self, energyColumn):
         grid_size = self.grid_size
@@ -49,7 +52,7 @@ class FermiSurface:
 
         # creates an array with energies taken by the corresponding indices of new_cart_mesh_helper -> created array is
         # as big as the indexing array
-        new_cart_mesh_helper = self.energy_values[energyColumn][self.cartesian_mesh().astype(int)]
+        new_cart_mesh_helper = self.energy_values[energyColumn][self.cartesian_mesh.astype(int)]
         new_cart_mesh_helper = np.array(new_cart_mesh_helper).reshape(
             (new_basevect_grid_size[0], new_basevect_grid_size[1],
              new_basevect_grid_size[2]))
@@ -101,6 +104,12 @@ class FermiSurface:
         self.surface = subdivision_surface(self.rez_base_vect, vertices, faces, iterations)
         return self
 
+    def downsample_surface(self, facenum):
+        vertices = self.surface.vertices
+        faces = self.surface.faces
+        self.surface = downsample_mesh(self.rez_base_vect, vertices, faces, facenum)
+        return self
+
     def build_surface(self):
         grid_size = self.grid_size
         new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
@@ -116,7 +125,8 @@ class FermiSurface:
                 continue
 
             # transform vertices, so it fits the base_vect_grid
-            self.subdivide_surface(2)
+            #self.subdivide_surface(0)
+            self.downsample_surface(10000)
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
