@@ -160,7 +160,7 @@ def centering(fermi_surface):
     return fermi_surface
 
 
-def subdivision_surface(rez_base_vect, vertices, faces, iterations):
+def subdivision_surface(vertices, faces, iterations):
     """
     divides each triangle of the parsed triangle mesh in to two triangles and therefore
     providing a higher resolution
@@ -170,11 +170,11 @@ def subdivision_surface(rez_base_vect, vertices, faces, iterations):
     :param iterations: how many times this algorithm is applied
     :return: the higher resolution triangle mesh
     """
-    new_basevect_mesh = np.dot(vertices, np.array(rez_base_vect))
 
     ms = pymeshlab.MeshSet()
-    ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
 
+    # Add it to the MeshSet
+    ms.add_mesh(pymeshlab.Mesh(vertex_matrix=vertices, face_matrix=faces))
     ms.meshing_surface_subdivision_loop(iterations=iterations, threshold=pymeshlab.PercentageValue(0))
 
     smoothed_mesh = ms.current_mesh()
@@ -184,22 +184,17 @@ def subdivision_surface(rez_base_vect, vertices, faces, iterations):
     return fermi_surface
 
 
-def downsample_mesh(rez_base_vect, vertices, faces, facenum):
-
-    new_basevect_mesh = np.dot(vertices, np.array(rez_base_vect))
+def downsample_mesh(vertices, faces, facepercentage):
 
     ms = pymeshlab.MeshSet()
-    ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
+    # Add it to the MeshSet
+    ms.add_mesh(pymeshlab.Mesh(vertex_matrix=vertices, face_matrix=faces))
 
-    m0 = ms.current_mesh()
-    print("vorher:", m0.vertex_number(), m0.face_number())
-
+    facenum = len(faces)*facepercentage/100
     numFaces = int(facenum)
-    ms.meshing_decimation_quadric_edge_collapse(targetfacenum=numFaces, preserveboundary=True)
+    ms.meshing_decimation_quadric_edge_collapse(targetfacenum=numFaces)
 
     smoothed_mesh = ms.current_mesh()
-    print("vorher:", smoothed_mesh.vertex_number(), smoothed_mesh.face_number())
-
     fermi_surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
                                     faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
 

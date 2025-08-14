@@ -5,6 +5,7 @@ from mesh_algorythms import create_cartesian_mesh, scale, centering, \
 from skimage import measure
 import numpy as np
 import trimesh
+import pymeshlab
 
 
 class FermiSurface:
@@ -60,8 +61,14 @@ class FermiSurface:
         # Apply the Marching Cubes algorithm
         vertices, faces, normals, values = measure.marching_cubes(new_cart_mesh_helper, level=self.fermi_energy)
 
-        self.surface = trimesh.Trimesh(vertices=np.asarray(vertices),
-                                       faces=np.asarray(faces), process=False)
+        # coordinate transformation
+        new_basevect_mesh = np.dot(vertices, np.array(self.rez_base_vect))
+        ms = pymeshlab.MeshSet()
+        ms.add_mesh(pymeshlab.Mesh(new_basevect_mesh, faces))
+        new_mesh = ms.current_mesh()
+
+        self.surface = trimesh.Trimesh(vertices=np.asarray(new_mesh.vertex_matrix()),
+                                       faces=np.asarray(new_mesh.face_matrix()), process=False)
 
         return self
 
@@ -101,13 +108,13 @@ class FermiSurface:
     def subdivide_surface(self, iterations):
         vertices = self.surface.vertices
         faces = self.surface.faces
-        self.surface = subdivision_surface(self.rez_base_vect, vertices, faces, iterations)
+        self.surface = subdivision_surface(vertices, faces, iterations)
         return self
 
-    def downsample_surface(self, facenum):
+    def downsample_surface(self, facepercentage):
         vertices = self.surface.vertices
         faces = self.surface.faces
-        self.surface = downsample_mesh(self.rez_base_vect, vertices, faces, facenum)
+        self.surface = downsample_mesh(vertices, faces, facepercentage)
         return self
 
     def build_surface(self):
@@ -125,8 +132,8 @@ class FermiSurface:
                 continue
 
             # transform vertices, so it fits the base_vect_grid
-            #self.subdivide_surface(0)
-            self.downsample_surface(10000)
+            self.subdivide_surface(0)
+            self.downsample_surface(facepercentage=2)
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
@@ -142,7 +149,4 @@ class FermiSurface:
 
     def visualization(self, filepath, save_fermisurf_path):
         figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index)
-        write_figure_to_file(figure, filepath, save_fermisurf_path)
-
-
-
+        write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=False)
