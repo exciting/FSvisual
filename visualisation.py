@@ -9,11 +9,9 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
     for index, fermi_surface in enumerate(fermi_surface_list):
         x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:,
                                                                                              2]
-        # x_mesh, y_mesh, z_mesh = smoothed_mesh.vertex_matrix()[:, 0], smoothed_vertices[:, 1], smoothed_vertices[:, 2]
 
         # Extract I, J, K indices of faces
         i, j, k = fermi_surface.faces[:, 0], fermi_surface.faces[:, 1], fermi_surface.faces[:, 2]
-        # i, j, k = smoothed_faces[:, 0], smoothed_faces[:, 1], smoothed_faces[:, 2]
 
         mesh_fermi_surfaces.append(go.Mesh3d(
             x=np.array(x_mesh),
@@ -23,7 +21,6 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
             j=np.array(j),
             k=np.array(k),
             name=f"Band {band_index[index]}",
-            # color='lightblue',
             opacity=1,
             showlegend=True
         ))
@@ -72,7 +69,7 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
             camera=dict(
                 projection=dict(
                     type='orthographic'
-                    # to change the perspective (so that lines dont distort over distance (nicht verjüngen))
+                    # to change the perspective (so that lines don't distort over distance)
                 )
             )
         )

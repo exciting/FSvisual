@@ -9,5 +9,5 @@ def main(filepath, save_fermisurf_path):
     new_fermisurface = FermiSurface(data[0], data[1], data[2], data[3])
     new_fermisurface.compute_brillouin_zone()
 
-    new_fermisurface.build_surface()
+    new_fermisurface.build_surface_with_bxsf_files()
     new_fermisurface.visualization(filepath, save_fermisurf_path)

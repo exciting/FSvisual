@@ -10,17 +10,19 @@ import pymeshlab
 
 class FermiSurface:
     """
-    Class for computing a ... a Fermi surface from xyz data.
-    (physical background)
+    Class for computing three-dimensional, interactive Fermi surfaces from .bxsf files, a filetype established by the
+    visualization software XCrsSDen. A Fermi surface is an object in k-space, that separates the occupied from the
+    unoccupied states (at the Fermi energy). Fermi surfaces are often shown within the first brillouin zone.
 
-    usage:
-    ``
-    wie machen programme wie wannier90 das ganze
+    usage: If the Fermi surface data is present as a .bxsf file, which is widely adopted as an output for Fermi
+    surface calculations e.g. by Wannier90 or exciting, for building a Fermi surface it is sufficient to just create
+    an object of the FermiSurface class and call the build_surface_with_bxsf_files method. Afterwards the visualization
+    mehtod can be called
 
     **Arguments**
 
     energy_values: list(float)
-        List of energies of the electron bands
+    List of energies of the electron bands
     In order to visualize Fermi surfaces, the band energy data, the Fermi energy, the reciprocal base vectors,
     as well as the grid size need to be provided (eg. with the `fsvisual.input.read_energy_numbers` function) with creating
     an object of the class. From there the method compute_brillouin_zone must be called to then call the `build_surface()`
@@ -117,7 +119,7 @@ class FermiSurface:
         self.surface = downsample_mesh(vertices, faces, facepercentage)
         return self
 
-    def build_surface(self, subdivide_surface=False, subdivide_iterations=1,
+    def build_surface_with_bxsf_files(self, subdivide_surface=False, subdivide_iterations=1,
                       downsample_surface=False, down_sampling_percentage=50):
         grid_size = self.grid_size
         new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
@@ -151,4 +153,4 @@ class FermiSurface:
 
     def visualization(self, filepath, save_fermisurf_path):
         figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index)
-        write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=False)
+        write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=True)
