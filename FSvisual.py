@@ -12,10 +12,11 @@ parser.add_argument("save_fermisurfaces", help="directory where visualized Fermi
 # optional arguments
 
 parser.add_argument("-s","--subdivision_surface", help="divides every triangle of the surface into two "
-                                                       "triangles; executes as many times as the input says", type=int)
+                                                       "triangles; executes as many times as the input says"
+                    ,default=0, type=int)
 
 parser.add_argument("-d","--downsampling_surface", help="downsamples the surface by a given percentage"
-                    , type=int)
+                    ,default=100, type=int)
 
 parser.add_argument("-c","--create_SVG", help="downsamples the surface by a given percentage"
                     ,action="store_true")
@@ -29,6 +30,10 @@ for filename in os.listdir(args.bxsf_files_directory):
         continue
 
     new_fermisurface = FermiSurface()
-    new_fermisurface.build_surface_with_bxsf_files(filepath)
-    new_fermisurface.visualization(filepath, args.save_fermisurfaces)
+
+    if args.subdivision_surface != 0 and args.downsampling_surface != 100:
+        raise ValueError("subdivision_surface and downsampling_surface are contrary functions")
+
+    new_fermisurface.build_surface_with_bxsf_files(filepath, args.subdivision_surface, args.downsampling_surface)
+    new_fermisurface.visualization(filepath, args.save_fermisurfaces, svg=args.create_SVG)
 

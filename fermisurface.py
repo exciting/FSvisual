@@ -169,6 +169,6 @@ class FermiSurface:
             self.band_index.append(index + 1)  # for the plot
         return self
 
-    def visualization(self, filepath, save_fermisurf_path, svg):
+    def visualization(self, filepath, save_fermisurf_path, svg=False):
         figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index)
         write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=svg)
