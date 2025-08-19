@@ -1,3 +1,4 @@
+from input import read_energy_numbers
 from brilouin_zone import first_bz
 from visualisation import build_plotly_figure, write_figure_to_file
 from mesh_algorythms import create_cartesian_mesh, scale, centering, \
@@ -29,25 +30,35 @@ class FermiSurface:
     method. Finally, for visualizing the Fermi surface, the visualization method can be called.
     """
 
-    def __init__(self, energy_values, fermi_energy, rez_base_vect, grid_size):
-        self.energy_values = energy_values
-        self.fermi_energy = fermi_energy
-        self.rez_base_vect = rez_base_vect
-        self.grid_size = grid_size
-        self.brillouin_zone = None  # calculated later on
-        self.surface = None  # calculated later on
+    def __init__(self):
+        self.energy_values = None
+        self.fermi_energy = None
+        self.rez_base_vect = None
+        self.grid_size = None
+        self.brillouin_zone = None
+        self.surface = None
         self.fermi_surface_list = None
         self.band_index = None
 
-    def compute_brillouin_zone(self):
-        self.brillouin_zone = first_bz(self.rez_base_vect)
 
     @property
     def cartesian_mesh(self):
         return create_cartesian_mesh(self.grid_size)
 
+    def set_energy_values(self, energy_values):
+        self.energy_values = energy_values
+
+    def set_fermi_energy(self, fermi_energy):
+        self.fermi_energy = fermi_energy
+
+    def set_rez_base_vect(self, rez_base_vect):
+        self.rez_base_vect = rez_base_vect
+
     def set_k_grid_by_size(self, grid_size):
-        raise NotImplementedError
+        self.grid_size = grid_size
+
+    def compute_brillouin_zone(self):
+        self.brillouin_zone = first_bz(self.rez_base_vect)
 
     def marching_cubes(self, energyColumn):
         grid_size = self.grid_size
@@ -119,8 +130,16 @@ class FermiSurface:
         self.surface = downsample_mesh(vertices, faces, facepercentage)
         return self
 
-    def build_surface_with_bxsf_files(self, subdivide_surface=False, subdivide_iterations=1,
-                      downsample_surface=False, down_sampling_percentage=50):
+    def build_surface_with_bxsf_files(self, filepath, subdivide_iterations=0, down_sampling_percentage=100):
+
+        data = read_energy_numbers(filepath)
+        self.set_energy_values(data[0])
+        self.set_fermi_energy(data[1])
+        self.set_rez_base_vect(data[2])
+        self.set_k_grid_by_size(data[3])
+
+        self.compute_brillouin_zone()
+
         grid_size = self.grid_size
         new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
 
@@ -134,10 +153,9 @@ class FermiSurface:
             except ValueError:
                 continue
 
-            if subdivide_surface:
-                self.subdivide_surface(subdivide_iterations)
-            if downsample_surface:
-                self.downsample_surface(facepercentage=down_sampling_percentage)
+
+            self.subdivide_surface(subdivide_iterations)
+            self.downsample_surface(facepercentage=down_sampling_percentage)
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
@@ -151,6 +169,6 @@ class FermiSurface:
             self.band_index.append(index + 1)  # for the plot
         return self
 
-    def visualization(self, filepath, save_fermisurf_path):
+    def visualization(self, filepath, save_fermisurf_path, svg):
         figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index)
-        write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=True)
+        write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=svg)

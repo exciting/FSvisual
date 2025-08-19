@@ -1,15 +1,25 @@
-from main import main
+from input import read_energy_numbers
+from fermisurface import FermiSurface
 import os
 import argparse
 
-#dirpath = "/home/Jan/Documents/Fermisurafces/Al"
-#save_fermisurf_path = "/home/Jan/Documents/Fermisurafces/Al"
-
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--bxsf_files_directory", help="directory (folder) where the .bxsf files (Fermi"
+parser.add_argument( "bxsf_files_directory", help="directory (folder) where the .bxsf files (Fermi"
                                                          "surface files) are stored")
-parser.add_argument("-s", "--save_fermisurfaces", help="directory where visualized Fermi surfaces "
+parser.add_argument("save_fermisurfaces", help="directory where visualized Fermi surfaces "
                                                        "are stored")
+
+# optional arguments
+
+parser.add_argument("-s","--subdivision_surface", help="divides every triangle of the surface into two "
+                                                       "triangles; executes as many times as the input says", type=int)
+
+parser.add_argument("-d","--downsampling_surface", help="downsamples the surface by a given percentage"
+                    , type=int)
+
+parser.add_argument("-c","--create_SVG", help="downsamples the surface by a given percentage"
+                    ,action="store_true")
+
 args = parser.parse_args()
 
 for filename in os.listdir(args.bxsf_files_directory):
@@ -17,5 +27,8 @@ for filename in os.listdir(args.bxsf_files_directory):
     # check if path leads to file
     if not os.path.isfile(filepath):
         continue
-    main(filepath, args.save_fermisurfaces)
+
+    new_fermisurface = FermiSurface()
+    new_fermisurface.build_surface_with_bxsf_files(filepath)
+    new_fermisurface.visualization(filepath, args.save_fermisurfaces)
 
