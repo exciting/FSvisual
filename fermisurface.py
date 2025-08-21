@@ -198,7 +198,8 @@ class FermiSurface:
         first brillouin zone and applying the marching cubes' algorithm.
         :param filepath: path to bxsf file.
         :param subdivide_iterations: number of iterations to subdivide the Fermi surface by subdivide_surface
-        :param down_sampling_percentage:
+        :param down_sampling_percentage: percentage to which the downsampling_surface method reduces the number of faces
+        :param downsampling_surface_face: number of faces to which the downsampling_surface method reduces the mesh
         :return: self
         """
 
