@@ -1,4 +1,3 @@
-from input import read_energy_numbers
 from fermisurface import FermiSurface
 import os
 import argparse
@@ -11,18 +10,20 @@ parser.add_argument("save_fermisurfaces", help="directory where visualized Fermi
 
 # optional arguments
 
-parser.add_argument("-s","--subdivision_surface", help="divides every triangle of the surface into two "
-                                                       "triangles; executes as many times as the input says"
-                    ,default=0, type=int)
+parser.add_argument("-s","--subdivision_surface", help="divides every triangle of the Fermi surface mesh"
+                                                       " into two triangles; executes as many times as the input says",
+                    default=0, type=int)
 
-parser.add_argument("-d","--downsampling_surface", help="downsamples the surface by a given percentage"
-                    ,default=100, type=int)
+parser.add_argument("-d","--downsampling_surface", help="lowers the resolution of the "
+                                                        "Fermi surface mesh (number of faces) to a given percentage "
+                                                        "(from original face count)",default=100, type=int)
 
-parser.add_argument("-c","--create_SVG", help="downsamples the surface by a given percentage"
-                    ,action="store_true")
+parser.add_argument("-c","--create_SVG", help="downsamples the surface by a given percentage",
+                    action="store_true")
 
 args = parser.parse_args()
 
+# auch für einzelne files anpassen
 for filename in os.listdir(args.bxsf_files_directory):
     filepath = os.path.join(args.bxsf_files_directory, filename)
     # check if path leads to file

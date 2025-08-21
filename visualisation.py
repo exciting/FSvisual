@@ -5,6 +5,13 @@ import os
 
 
 def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
+    """
+    to build the Fermi surface as a 3D interactive plotly figure
+    :param fermi_surface_list: list of all surface parts of the Fermi surface
+    :param brillouin_zone_object: the brillouin zone object created with the compute_brillouin_zone from FSvisual
+    :param band_index: list of band indices corresponding to each surface part
+    :return: the plotly figure
+    """
     mesh_fermi_surfaces = []
     for index, fermi_surface in enumerate(fermi_surface_list):
         x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:,
@@ -79,6 +86,15 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
 
 def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
                          scene_camera_SVG=None):
+    """
+
+    :param fig:
+    :param filepath:
+    :param save_figure_directory:
+    :param create_SVG:
+    :param scene_camera_SVG:
+    :return:
+    """
 
     filename = os.path.basename(filepath)
     filename = filename.split(".")[0]

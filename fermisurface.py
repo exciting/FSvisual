@@ -1,8 +1,7 @@
 from input import read_energy_numbers
 from brilouin_zone import first_bz
 from visualisation import build_plotly_figure, write_figure_to_file
-from mesh_algorythms import create_cartesian_mesh, scale, centering, \
-    face_center_BZ, subdivision_surface, downsample_mesh
+from mesh_algorythms import create_cartesian_mesh, face_center_BZ
 from skimage import measure
 import numpy as np
 import trimesh
@@ -18,16 +17,20 @@ class FermiSurface:
     usage: If the Fermi surface data is present as a .bxsf file, which is widely adopted as an output for Fermi
     surface calculations e.g. by Wannier90 or exciting, for building a Fermi surface it is sufficient to just create
     an object of the FermiSurface class and call the build_surface_with_bxsf_files method. Afterwards the visualization
-    mehtod can be called
+    method can be called.
 
     **Arguments**
 
     energy_values: list(float)
-    List of energies of the electron bands
-    In order to visualize Fermi surfaces, the band energy data, the Fermi energy, the reciprocal base vectors,
-    as well as the grid size need to be provided (eg. with the `fsvisual.input.read_energy_numbers` function) with creating
-    an object of the class. From there the method compute_brillouin_zone must be called to then call the `build_surface()`
-    method. Finally, for visualizing the Fermi surface, the visualization method can be called.
+    fermi_energy: list(float)
+    rez_base_vect: list(float)
+    grid_size: list(int)
+    brillouin_zone: list(int)
+    surface: list(int)
+    fermi_surface_list: list(int)
+    band_index: list(int)
+
+
     """
 
     def __init__(self):
@@ -86,15 +89,30 @@ class FermiSurface:
         return self
 
     def scale_surface(self, scale_factor):
+        """
+        Scales the Fermi surface according to the given `scale_factor`.
+        :param scale_factor: factor to scale the Fermi surface by
+        :return: self
+        """
         if self.surface is None:
             raise ValueError("surface is not yet defined")
-        self.surface = scale(scale_factor, self.surface)
+        # Create a scaling matrix
+        scaling_matrix = np.eye(4)
+        scaling_matrix[:3, :3] *= scale_factor
+
+        # Apply the scaling transformation to the mesh
+        self.surface.apply_transform(scaling_matrix)
         return self
 
     def center_surface(self):
+        """
+        centers the Fermi surface to the origin
+        :return: centered Fermi surface as Trimesh object
+        """
         if self.surface is None:
             raise ValueError("surface is not yet defined")
-        self.surface = centering(self.surface)
+
+        self.surface.apply_translation([-self.surface.centroid[i] for i in range(3)])
         return self
 
     def slice_surface(self):
@@ -119,18 +137,62 @@ class FermiSurface:
         return self
 
     def subdivide_surface(self, iterations):
+        """
+        divides each triangle of the parsed triangle mesh in to two triangles and therefore
+        providing a higher resolution
+        :param iterations: how many times this algorithm is applied
+        :return: the higher resolution triangle mesh
+        """
+
         vertices = self.surface.vertices
         faces = self.surface.faces
-        self.surface = subdivision_surface(vertices, faces, iterations)
+
+        ms = pymeshlab.MeshSet()
+
+        # Add it to the MeshSet
+        ms.add_mesh(pymeshlab.Mesh(vertex_matrix=vertices, face_matrix=faces))
+        ms.meshing_surface_subdivision_loop(iterations=iterations, threshold=pymeshlab.PercentageValue(0))
+
+        smoothed_mesh = ms.current_mesh()
+        self.surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
+                                        faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
+
         return self
 
-    def downsample_surface(self, facepercentage):
+    def downsample_surface(self, face_percentage):
+        """
+        lowers the resolution of the Fermi surface mesh (number of faces) to a given percentage
+        (from original face count)
+        :param face_percentage: targeted face percentage
+        :return: self
+        """
+
         vertices = self.surface.vertices
         faces = self.surface.faces
-        self.surface = downsample_mesh(vertices, faces, facepercentage)
+
+        ms = pymeshlab.MeshSet()
+        # Add it to the MeshSet
+        ms.add_mesh(pymeshlab.Mesh(vertex_matrix=vertices, face_matrix=faces))
+
+        facenum = len(faces) * face_percentage / 100
+        numFaces = int(facenum)
+        ms.meshing_decimation_quadric_edge_collapse(targetfacenum=numFaces)
+
+        smoothed_mesh = ms.current_mesh()
+        self.surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
+                                        faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
+
         return self
 
     def build_surface_with_bxsf_files(self, filepath, subdivide_iterations=0, down_sampling_percentage=100):
+        """
+        whole fermi surface construction process for bxsf files, including reading out the input data, building the
+        first brillouin zone and applying the marching cubes' algorithm.
+        :param filepath: path to bxsf file.
+        :param subdivide_iterations: number of iterations to subdivide the Fermi surface by subdivide_surface
+        :param down_sampling_percentage:
+        :return: self
+        """
 
         data = read_energy_numbers(filepath)
         self.set_energy_values(data[0])
@@ -155,7 +217,7 @@ class FermiSurface:
 
 
             self.subdivide_surface(subdivide_iterations)
-            self.downsample_surface(facepercentage=down_sampling_percentage)
+            self.downsample_surface(face_percentage=down_sampling_percentage)
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
@@ -170,5 +232,12 @@ class FermiSurface:
         return self
 
     def visualization(self, filepath, save_fermisurf_path, svg=False):
+        """
+        Visualizes the Fermi surface as a 3D interactive plot saved as an html file. Also allows for creating
+        an SVG Image of the Fermi surface along the html file.
+        :param filepath: path to bxsf file.
+        :param save_fermisurf_path: directory where the created files and imaged will be stored
+        :param svg: boolean whether to create the SVG image
+        """
         figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index)
         write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=svg)

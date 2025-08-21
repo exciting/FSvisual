@@ -1,6 +1,4 @@
 import numpy as np
-import trimesh
-import pymeshlab
 
 
 def create_cartesian_mesh(grid_size):
@@ -76,7 +74,7 @@ def triangle_area(triangle):
     :return: area of a triangle in FE
     """
 
-    # nach Koordinaten im Raum
+    # from coordinates in space
 
     P1 = np.array(triangle[0])
     P2 = np.array(triangle[1])
@@ -134,68 +132,3 @@ def face_center_BZ(brillouin_zone_facets):
         face_centers.append([xS, yS, zS])
 
     return face_centers
-
-
-def scale(scale_factor, fermi_surface):
-
-    # Create a scaling matrix
-    scaling_matrix = np.eye(4)
-    scaling_matrix[:3, :3] *= scale_factor
-
-    # Apply the scaling transformation to the mesh
-    fermi_surface.apply_transform(scaling_matrix)
-
-    return fermi_surface
-
-
-def centering(fermi_surface):
-    """
-    centers the Fermi surface to the origin
-    :param fermi_surface: Fermi surface as Trimesh object
-    :return: centered Fermi surface as Trimesh object
-    """
-
-    fermi_surface.apply_translation(
-        [-fermi_surface.centroid[i] for i in range(3)])
-    return fermi_surface
-
-
-def subdivision_surface(vertices, faces, iterations):
-    """
-    divides each triangle of the parsed triangle mesh in to two triangles and therefore
-    providing a higher resolution
-    :param rez_base_vect: reciprocal basis vectors
-    :param vertices: vertices of the triangle mesh
-    :param faces: faces of the triangles
-    :param iterations: how many times this algorithm is applied
-    :return: the higher resolution triangle mesh
-    """
-
-    ms = pymeshlab.MeshSet()
-
-    # Add it to the MeshSet
-    ms.add_mesh(pymeshlab.Mesh(vertex_matrix=vertices, face_matrix=faces))
-    ms.meshing_surface_subdivision_loop(iterations=iterations, threshold=pymeshlab.PercentageValue(0))
-
-    smoothed_mesh = ms.current_mesh()
-    fermi_surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
-                                    faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
-
-    return fermi_surface
-
-
-def downsample_mesh(vertices, faces, facepercentage):
-
-    ms = pymeshlab.MeshSet()
-    # Add it to the MeshSet
-    ms.add_mesh(pymeshlab.Mesh(vertex_matrix=vertices, face_matrix=faces))
-
-    facenum = len(faces)*facepercentage/100
-    numFaces = int(facenum)
-    ms.meshing_decimation_quadric_edge_collapse(targetfacenum=numFaces)
-
-    smoothed_mesh = ms.current_mesh()
-    fermi_surface = trimesh.Trimesh(vertices=np.asarray(smoothed_mesh.vertex_matrix()),
-                                    faces=np.asarray(smoothed_mesh.face_matrix()), process=False)
-
-    return fermi_surface
