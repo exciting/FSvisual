@@ -225,7 +225,7 @@ class FermiSurface:
 
 
             self.subdivide_surface(subdivide_iterations)
-            self.downsample_surface(face_percentage=down_sampling_percentage,face_numbersdownsampling_surface_face)
+            self.downsample_surface(face_percentage=down_sampling_percentage,face_numbers=downsampling_surface_face)
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
