@@ -22,10 +22,17 @@ parser.add_argument("-c","--create_SVG", help="downsamples the surface by a give
                     action="store_true")
 
 args = parser.parse_args()
+file_list = []
+if os.path.isfile(args.bxsf_files_directory):
+    file_list.append(os.path.basename(args.bxsf_files_directory))
+    path = os.path.dirname(args.bxsf_files_directory)
+else:
+    file_list.extend(os.listdir(args.bxsf_files_directory))
+    path = args.bxsf_files_directory
 
 # auch für einzelne files anpassen
-for filename in os.listdir(args.bxsf_files_directory):
-    filepath = os.path.join(args.bxsf_files_directory, filename)
+for filename in file_list:
+    filepath = os.path.join(path, filename)
     # check if path leads to file
     if not os.path.isfile(filepath):
         continue
