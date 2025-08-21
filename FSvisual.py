@@ -14,11 +14,16 @@ parser.add_argument("-s","--subdivision_surface", help="divides every triangle o
                                                        " into two triangles; executes as many times as the input says",
                     default=0, type=int)
 
-parser.add_argument("-d","--downsampling_surface", help="lowers the resolution of the "
+parser.add_argument("-dp","--downsampling_surface_percentage", help="lowers the resolution of the "
                                                         "Fermi surface mesh (number of faces) to a given percentage "
                                                         "(from original face count)",default=100, type=int)
 
-parser.add_argument("-c","--create_SVG", help="downsamples the surface by a given percentage",
+parser.add_argument("-df","--downsampling_surface_face", help="lowers the resolution of the "
+                                                        "Fermi surface mesh (number of faces) to a given face number",
+                    default=None, type=int)
+
+
+parser.add_argument("-c","--create_SVG", help="boolean whether to create SVG files ",
                     action="store_true")
 
 args = parser.parse_args()
@@ -42,6 +47,7 @@ for filename in file_list:
     if args.subdivision_surface != 0 and args.downsampling_surface != 100:
         raise ValueError("subdivision_surface and downsampling_surface are contrary functions")
 
-    new_fermisurface.build_surface_with_bxsf_files(filepath, args.subdivision_surface, args.downsampling_surface)
+    new_fermisurface.build_surface_with_bxsf_files(filepath, args.subdivision_surface,
+                                                   args.downsampling_surface_percentage, args.downsampling_surface_face)
     new_fermisurface.visualization(filepath, args.save_fermisurfaces, svg=args.create_SVG)
 

@@ -159,14 +159,15 @@ class FermiSurface:
 
         return self
 
-    def downsample_surface(self, face_percentage):
+    def downsample_surface(self, face_percentage, face_numbers):
         """
         lowers the resolution of the Fermi surface mesh (number of faces) to a given percentage
         (from original face count)
         :param face_percentage: targeted face percentage
         :return: self
         """
-
+        if face_percentage == 100 and face_numbers is None:
+            return self
         vertices = self.surface.vertices
         faces = self.surface.faces
 
@@ -174,8 +175,14 @@ class FermiSurface:
         # Add it to the MeshSet
         ms.add_mesh(pymeshlab.Mesh(vertex_matrix=vertices, face_matrix=faces))
 
-        facenum = len(faces) * face_percentage / 100
-        numFaces = int(facenum)
+        if face_numbers is not None and face_percentage != 100:
+            raise ValueError("You can only either provide a face_percentage or face_numbers, not both")
+        elif face_numbers is not None:
+            numFaces = face_numbers
+        else:
+            facenum = len(faces) * face_percentage / 100
+            numFaces = int(facenum)
+
         ms.meshing_decimation_quadric_edge_collapse(targetfacenum=numFaces)
 
         smoothed_mesh = ms.current_mesh()
@@ -184,7 +191,8 @@ class FermiSurface:
 
         return self
 
-    def build_surface_with_bxsf_files(self, filepath, subdivide_iterations=0, down_sampling_percentage=100):
+    def build_surface_with_bxsf_files(self, filepath, subdivide_iterations=0, down_sampling_percentage=100,
+                                      downsampling_surface_face=None):
         """
         whole fermi surface construction process for bxsf files, including reading out the input data, building the
         first brillouin zone and applying the marching cubes' algorithm.
@@ -217,7 +225,7 @@ class FermiSurface:
 
 
             self.subdivide_surface(subdivide_iterations)
-            self.downsample_surface(face_percentage=down_sampling_percentage)
+            self.downsample_surface(face_percentage=down_sampling_percentage,face_numbersdownsampling_surface_face)
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
