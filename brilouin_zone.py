@@ -6,7 +6,7 @@ def first_bz(rez_lattice):
     """
     calculates the edge points of a Brillouin zone for any given reciprocal lattice.
 
-    :param rez_lattice: koordinates for the reciprocal lattice vectors (list of three 3 Dimensional koordinates)
+    :param rez_lattice: coordinates for the reciprocal lattice vectors (list of three 3 Dimensional coordinates)
     :return: 1. Brillouin zone as a list containing x, y, z coordinates on separate lists for each
     """
 

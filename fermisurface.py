@@ -15,22 +15,12 @@ class FermiSurface:
     unoccupied states (at the Fermi energy). Fermi surfaces are often shown within the first brillouin zone.
 
     usage: If the Fermi surface data is present as a .bxsf file, which is widely adopted as an output for Fermi
-    surface calculations e.g. by Wannier90 or exciting, for building a Fermi surface it is sufficient to just create
-    an object of the FermiSurface class and call the build_surface_with_bxsf_files method. Afterwards the visualization
-    method can be called.
+    surface calculations e.g. by Wannier90 or exciting, it is sufficient to just create an object of the FermiSurface
+    class and call the build_surface_with_bxsf_files method for building a Fermi surface. Afterwards the visualization
+    method can be called to create 3D interactive plots of the Fermi surface.
 
-    **Arguments**
-
-    energy_values: list(float)
-    fermi_energy: list(float)
-    rez_base_vect: list(float)
-    grid_size: list(int)
-    brillouin_zone: list(int)
-    surface: list(int)
-    fermi_surface_list: list(int)
-    band_index: list(int)
-
-
+    For information concerning the .bxsf file format, and also if your fermi surface data is stored in a different format,
+    please consult the documentation of FSvisual.
     """
 
     def __init__(self):

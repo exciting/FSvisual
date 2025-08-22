@@ -5,10 +5,11 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument( "bxsf_files_directory", help="directory (folder) where the .bxsf files (Fermi"
                                                          "surface files) are stored")
-parser.add_argument("save_fermisurfaces", help="directory where visualized Fermi surfaces "
-                                                       "are stored")
 
 # optional arguments
+
+parser.add_argument("-sf","--save_fermisurfaces", help="directory where visualized Fermi surfaces "
+                                                       "are stored")
 
 parser.add_argument("-s","--subdivision_surface", help="divides every triangle of the Fermi surface mesh"
                                                        " into two triangles; executes as many times as the input says",
@@ -27,15 +28,24 @@ parser.add_argument("-c","--create_SVG", help="boolean whether to create SVG fil
                     action="store_true")
 
 args = parser.parse_args()
+
+# you can either parse a whole directory of .bxsf files or just the path to a single .bxsf file
 file_list = []
 if os.path.isfile(args.bxsf_files_directory):
     file_list.append(os.path.basename(args.bxsf_files_directory))
     path = os.path.dirname(args.bxsf_files_directory)
+    if args.save_fermisurfaces is not None:
+        save_path = args.save_fermisurfaces
+    else:
+        save_path = path
 else:
     file_list.extend(os.listdir(args.bxsf_files_directory))
     path = args.bxsf_files_directory
+    if args.save_fermisurfaces is not None:
+        save_path = args.save_fermisurfaces
+    else:
+        save_path = args.bxsf_files_directory
 
-# auch für einzelne files anpassen
 for filename in file_list:
     filepath = os.path.join(path, filename)
     # check if path leads to file
@@ -49,5 +59,6 @@ for filename in file_list:
 
     new_fermisurface.build_surface_with_bxsf_files(filepath, args.subdivision_surface,
                                                    args.downsampling_surface_percentage, args.downsampling_surface_face)
-    new_fermisurface.visualization(filepath, args.save_fermisurfaces, svg=args.create_SVG)
+
+    new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG)
 
