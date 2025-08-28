@@ -1,11 +1,4 @@
 import numpy as np
-import trimesh
-from skimage import measure
-from pymatgen.core import Lattice
-
-
-def xc_malloc_tensor3f(x, y, z):
-    return np.zeros((x, y, z), dtype=float)
 
 
 def create_cartesian_mesh(grid_size):
@@ -66,24 +59,6 @@ def triangulate_faces(facets):
     return triangles
 
 
-def check_fermi_surface(energies, fermi_energy):
-    # outdated
-    """
-    checks whether the energy in a band is equal to the fermi_energy (within uncertainties)
-    :param fermi_energy: energy value that FERMISURF.bxsf defines as fermiy_energy
-    :param energies: all energy values of one band
-    :return: list of indices for k-points to choose from the grid
-    """
-
-    index_for_k_position = []
-    i = 0
-    for energy in energies:
-        if fermi_energy - 0.01 <= energy <= fermi_energy + 0.01:
-            index_for_k_position.append(i)
-        i += 1
-    return index_for_k_position
-
-
 def abs_vect(vector):
     """
     :param vector: takes 3D vector as a list or array
@@ -99,7 +74,7 @@ def triangle_area(triangle):
     :return: area of a triangle in FE
     """
 
-    # nach Koordinaten im Raum
+    # from coordinates in space
 
     P1 = np.array(triangle[0])
     P2 = np.array(triangle[1])

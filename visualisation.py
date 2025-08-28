@@ -4,16 +4,21 @@ import plotly.io as pio
 import os
 
 
-def plot(fermi_surface_list, brillouin_zone_object, band_index, filepath, save_fermisurf_path):
+def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
+    """
+    to build the Fermi surface as a 3D interactive plotly figure
+    :param fermi_surface_list: list of all surface parts of the Fermi surface
+    :param brillouin_zone_object: the brillouin zone object created with the compute_brillouin_zone from FSvisual
+    :param band_index: list of band indices corresponding to each surface part
+    :return: the plotly figure
+    """
     mesh_fermi_surfaces = []
     for index, fermi_surface in enumerate(fermi_surface_list):
         x_mesh, y_mesh, z_mesh = fermi_surface.vertices[:, 0], fermi_surface.vertices[:, 1], fermi_surface.vertices[:,
                                                                                              2]
-        # x_mesh, y_mesh, z_mesh = smoothed_mesh.vertex_matrix()[:, 0], smoothed_vertices[:, 1], smoothed_vertices[:, 2]
 
         # Extract I, J, K indices of faces
         i, j, k = fermi_surface.faces[:, 0], fermi_surface.faces[:, 1], fermi_surface.faces[:, 2]
-        # i, j, k = smoothed_faces[:, 0], smoothed_faces[:, 1], smoothed_faces[:, 2]
 
         mesh_fermi_surfaces.append(go.Mesh3d(
             x=np.array(x_mesh),
@@ -23,7 +28,6 @@ def plot(fermi_surface_list, brillouin_zone_object, band_index, filepath, save_f
             j=np.array(j),
             k=np.array(k),
             name=f"Band {band_index[index]}",
-            # color='lightblue',
             opacity=1,
             showlegend=True
         ))
@@ -72,20 +76,36 @@ def plot(fermi_surface_list, brillouin_zone_object, band_index, filepath, save_f
             camera=dict(
                 projection=dict(
                     type='orthographic'
-                    # to change the perspective (so that lines dont distort over distance (nicht verjüngen))
+                    # to change the perspective (so that lines don't distort over distance)
                 )
             )
         )
     )
+    return fig
 
-    #fig.show()
+
+def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
+                         scene_camera_SVG=None):
+    """
+    Function to take a plotly figure and write it to a file with potentially also creating an SVG file.
+    :param fig: plotly figure
+    :param filepath: path to .bxsf file/files
+    :param save_figure_directory: directory where to save the figure
+    :param create_SVG: boolean whether to create SVG file
+    :param scene_camera_SVG: alter the cameras position and angle with dictionary (scene_camera parameter in plotly)
+    """
+
     filename = os.path.basename(filepath)
     filename = filename.split(".")[0]
-    pio.write_html(fig, file=f'{save_fermisurf_path}/{filename}.html', auto_open=False, config={'displayModeBar': False})
+    pio.write_html(fig, file=f'{save_figure_directory}/{filename}.html', auto_open=False,
+                   config={'displayModeBar': False})
 
-    fig.update_layout(
-        showlegend=False,
-        scene_camera=dict(eye=dict(x=1, y=1, z=1)),  # change camera scene
-        margin=dict(l=0, r=0, b=0, t=0)  # set the space on the edges to 0 (so that the plot fills out the image)
-    )
-    #fig.write_image(f'{save_fermisurf_path}/{filename}.svg', format="svg", width=500, height=800)
+    if create_SVG:
+        if scene_camera_SVG is None:
+            scene_camera_SVG = dict(eye=dict(x=1, y=1, z=1))
+        fig.update_layout(
+            showlegend=False,
+            scene_camera=scene_camera_SVG,  # change camera scene
+            margin=dict(l=0, r=0, b=0, t=0)  # set the space on the edges to 0 (so that the plot fills out the image)
+        )
+        fig.write_image(f'{save_figure_directory}/{filename}.svg', format="svg", width=500, height=800)
