@@ -87,13 +87,12 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
 def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
                          scene_camera_SVG=None):
     """
-
-    :param fig:
-    :param filepath:
-    :param save_figure_directory:
-    :param create_SVG:
-    :param scene_camera_SVG:
-    :return:
+    Function to take a plotly figure and write it to a file with potentially also creating an SVG file.
+    :param fig: plotly figure
+    :param filepath: path to .bxsf file/files
+    :param save_figure_directory: directory where to save the figure
+    :param create_SVG: boolean whether to create SVG file
+    :param scene_camera_SVG: alter the cameras position and angle with dictionary (scene_camera parameter in plotly)
     """
 
     filename = os.path.basename(filepath)
