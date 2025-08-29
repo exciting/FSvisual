@@ -1,0 +1,2 @@
+[console_scripts]
+fsvisual = fsvisual.cli:main
