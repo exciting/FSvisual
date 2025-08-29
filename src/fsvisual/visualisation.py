@@ -2,6 +2,8 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
 import os
+import kaleido
+kaleido.get_chrome_sync()
 
 
 def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
