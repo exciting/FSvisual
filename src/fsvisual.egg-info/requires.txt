@@ -8,3 +8,11 @@ pymatgen>=2025.6.14
 plotly>=6.3.0
 shapely>=2.1.1
 kaleido>=1.0.0
+
+[dev]
+pytest>=7.0
+pytest-mock
+pytest-cov
+black>=24.0
+flake8>=7.0
+mypy>=1.0
