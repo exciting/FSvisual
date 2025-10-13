@@ -1,5 +1,5 @@
 from .input import read_energy_numbers
-from .brilouin_zone import first_bz
+from .brillouin_zone import first_bz
 from .visualisation import build_plotly_figure, write_figure_to_file
 from .mesh_algorythms import create_cartesian_mesh, face_center_BZ
 from skimage import measure
