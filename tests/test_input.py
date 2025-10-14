@@ -3,13 +3,13 @@ import pytest
 import numpy as np
 import pandas as pd
 
-input_file_1 = "src/tests/data/bxsf/fcc_41x41x41"
-exp_energy_num_1 = np.load("src/tests/data/npz/expected_fcc_41x41x41.npz")
+input_file_1 = "tests/data/bxsf/fcc_41x41x41"
+exp_energy_num_1 = np.load("tests/data/npz/expected_fcc_41x41x41.npz")
 exp_energy_num_1 = [exp_energy_num_1.f.df, exp_energy_num_1.f.fermi_energy, exp_energy_num_1.f.rez_base_vect,
                     exp_energy_num_1.f.grid_size]
 
-input_file_2 = "src/tests/data/bxsf/W_bcc_161x161x161"
-exp_energy_num_2 = np.load("src/tests/data/npz/expected_W_bcc_161x161x161.npz")
+input_file_2 = "tests/data/bxsf/W_bcc_161x161x161"
+exp_energy_num_2 = np.load("tests/data/npz/expected_W_bcc_161x161x161.npz")
 exp_energy_num_2 = [exp_energy_num_2.f.df, exp_energy_num_2.f.fermi_energy, exp_energy_num_2.f.rez_base_vect,
                     exp_energy_num_2.f.grid_size]
 
