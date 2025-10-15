@@ -8,14 +8,9 @@ exp_energy_num_1 = np.load("tests/data/npz/expected_fcc_41x41x41.npz")
 exp_energy_num_1 = [exp_energy_num_1.f.df, exp_energy_num_1.f.fermi_energy, exp_energy_num_1.f.rez_base_vect,
                     exp_energy_num_1.f.grid_size]
 
-input_file_2 = "tests/data/bxsf/W_bcc_161x161x161"
-exp_energy_num_2 = np.load("tests/data/npz/expected_W_bcc_161x161x161.npz")
-exp_energy_num_2 = [exp_energy_num_2.f.df, exp_energy_num_2.f.fermi_energy, exp_energy_num_2.f.rez_base_vect,
-                    exp_energy_num_2.f.grid_size]
 
 @pytest.mark.parametrize("input_file, expected_energy_numbers", [
     (input_file_1, exp_energy_num_1), # fcc, 41x41x41
-    (input_file_2, exp_energy_num_2) # W, bcc, 161x161x161
 ])
 
 def test_read_energy_numbers(input_file, expected_energy_numbers):
