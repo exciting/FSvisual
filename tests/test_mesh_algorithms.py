@@ -26,12 +26,10 @@ def test_mesh_calculation(calculated_mesh, expected_mesh):
     assert np.allclose(calculated_mesh, expected_mesh)
 
 def test_triangulate_faces(bz_faces):
-
     expected_triangulated_faces = np.load("tests/data/mesh_algorithms/output_triangulate_faces.npz")
     bz_faces.append(np.array([[0,1,1], [0,0,2], [0,3,3]]))  # to get 100% testing coverage
     bz_faces.append(np.array([[0, 1, 1], [0, 0, 2], [0, 3, 3], [5,4,3]]))
     calculated_triangle_faces = np.array(triangulate_faces(bz_faces))
-
     assert np.allclose(calculated_triangle_faces, expected_triangulated_faces.f.faces)
 
 def test_abs_vect():
@@ -53,7 +51,6 @@ def test_triangle_center():
     assert np.allclose(calculated_triangle_center, expected_triangle_center)
 
 def test_face_center_BZ(bz_faces):
-    #faces[0] = np.append(faces[0], [[0,0,0]], axis=0)
     calculated_face_center_BZ = face_center_BZ(bz_faces)
     expected_face_center_BZ = np.load("tests/data/mesh_algorithms/output_face_centers_bz.npz")
     assert np.allclose(calculated_face_center_BZ, expected_face_center_BZ.f.face_centers)
