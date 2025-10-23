@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fsvisual"
+version = "0.0.1"
+authors = [
+  { name="Jan Stutz", email="stutzjan@physik.hu-berlin.de" },
+]
+description = "A Fermi surface visualization package"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas >= 2.3.1",
+    "numpy >= 2.3.1",
+    "trimesh >= 4.7.4",
+    "pymeshlab >= 2023.12.post3",
+    "scikit-image >= 0.25.2",
+    "requests >= 2.32.4",
+    "pymatgen >= 2025.6.14",
+    "plotly >= 6.3.0",
+    "shapely >= 2.1.1",
+    "kaleido >= 1.0.0"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+
+[project.scripts]
+fsvisual = "fsvisual.cli:main"
+
+[project.urls]
+Homepage = "https://git.physik.hu-berlin.de/stutzjan/bachelorarbeit/"
+Issues = "https://git.physik.hu-berlin.de/stutzjan/bachelorarbeit/-/issues"

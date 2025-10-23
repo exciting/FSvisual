@@ -1,0 +1,26 @@
+Metadata-Version: 2.4
+Name: fsvisual
+Version: 0.0.1
+Summary: A Fermi surface visualization package
+Author-email: Jan Stutz <stutzjan@physik.hu-berlin.de>
+License-Expression: GPL-3.0-or-later
+Project-URL: Homepage, https://git.physik.hu-berlin.de/stutzjan/bachelorarbeit/
+Project-URL: Issues, https://git.physik.hu-berlin.de/stutzjan/bachelorarbeit/-/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pandas>=2.3.1
+Requires-Dist: numpy>=2.3.1
+Requires-Dist: trimesh>=4.7.4
+Requires-Dist: pymeshlab>=2023.12.post3
+Requires-Dist: scikit-image>=0.25.2
+Requires-Dist: requests>=2.32.4
+Requires-Dist: pymatgen>=2025.6.14
+Requires-Dist: plotly>=6.3.0
+Requires-Dist: shapely>=2.1.1
+Requires-Dist: kaleido>=1.0.0
+Dynamic: license-file
+
+Project files of FSvisual
