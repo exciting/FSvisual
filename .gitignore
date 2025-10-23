@@ -1,4 +1,4 @@
 __pycache__
 *.bxsf
-dist/*
 src/fsvisual.egg-info/*
+/dist/
