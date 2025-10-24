@@ -3,8 +3,8 @@ import pytest
 import numpy as np
 import pandas as pd
 
-input_file_1 = "tests/data/bxsf/fcc_41x41x41"
-exp_energy_num_1 = np.load("tests/data/npz/expected_fcc_41x41x41.npz")
+input_file_1 = "tests/data/bxsf/Ag_fcc_5x5x5.bxsf"
+exp_energy_num_1 = np.load("tests/data/npz/expected_Ag_fcc_5x5x5.npz")
 exp_energy_num_1 = [exp_energy_num_1.f.df, exp_energy_num_1.f.fermi_energy, exp_energy_num_1.f.rez_base_vect,
                     exp_energy_num_1.f.grid_size]
 

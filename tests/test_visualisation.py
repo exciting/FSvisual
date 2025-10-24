@@ -6,7 +6,7 @@ import plotly.io as io
 import os
 
 
-surface_list = trimesh.load("tests/data/visualisation/mesh.ply")    # mesh from bxsf/fcc_41x41x41
+surface_list = trimesh.load("tests/data/visualisation/mesh.ply")    # mesh from bxsf/Ag_fcc_5x5x5.bxsf
 rez_lattice = [[0.8152569492, 0.8152569492, -0.8152569492], [0.8152569492, -0.8152569492, 0.8152569492],
                [-0.8152569492, 0.8152569492 , 0.8152569492]]
 brillouin_zone_obj = first_bz(rez_lattice)
@@ -31,7 +31,7 @@ def test_build_plotly_figure():
 
 def test_write_figure_to_file():
     bool_file_exists = False
-    filename = "fcc_41x41x41"
+    filename = "Ag_fcc_5x5x5"
     write_figure_to_file(expected_fig,f"tests/data/bxsf/{filename}.bxsf", "tests/data" )
     if os.path.exists(f"tests/data/{filename}.html") and os.path.exists(f"tests/data/{filename}.svg"):
         bool_file_exists = True
