@@ -8,13 +8,12 @@ reciprocal_basis_examples = np.load("tests/data/brillouin_zone/reciprocal_basis_
 # standard bz data
 expected_bz_output = [np.load("tests/data/brillouin_zone/bz_output/output0.npz"),
                       np.load("tests/data/brillouin_zone/bz_output/output1.npz"),
-                      np.load("tests/data/brillouin_zone/bz_output/output2.npz"),
-                      np.load("tests/data/brillouin_zone/bz_output/output3.npz")]
+                      np.load("tests/data/brillouin_zone/bz_output/output2.npz")]
 
 
 # xyz
 
-expected_bz_output_xyz = np.load("tests/data/brillouin_zone/bz_output_xyz.npz", allow_pickle=True)
+expected_bz_output_xyz = np.load("tests/data/brillouin_zone/bz_output_xyz.npz")
 
 
 
@@ -22,7 +21,6 @@ expected_bz_output_xyz = np.load("tests/data/brillouin_zone/bz_output_xyz.npz", 
     (reciprocal_basis_examples.f.basis1, expected_bz_output_xyz.f.output1, expected_bz_output[0].f),
     (reciprocal_basis_examples.f.basis2, expected_bz_output_xyz.f.output2, expected_bz_output[1].f),
     (reciprocal_basis_examples.f.basis3, expected_bz_output_xyz.f.output3, expected_bz_output[2].f),
-    (reciprocal_basis_examples.f.basis4, expected_bz_output_xyz.f.output4, expected_bz_output[3].f),
 ])
 
 

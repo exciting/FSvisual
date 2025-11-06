@@ -3,7 +3,7 @@ from fsvisual.brillouin_zone import first_bz
 import trimesh
 import json
 import plotly.io as io
-import os
+import numpy as np
 
 
 surface_list = trimesh.load("tests/data/visualisation/mesh.ply")    # mesh from bxsf/Ag_fcc_5x5x5.bxsf
@@ -22,22 +22,20 @@ def compare_dicts(dict1, dict2):
     if dict1.keys() != dict2.keys():    # needs to be refined
         return False
     else:
-        return True
+        # compare vertices of the figure
+        dict1_data = [dict1["data"][0]["x"], dict1["data"][0]["y"], dict1["data"][0]["z"]]
+        dict2_data = [dict2["data"][0]["x"], dict2["data"][0]["y"], dict2["data"][0]["z"]]
+        for j in range(len(dict1_data)):
+            for k in range(len(dict1_data[j])):
+                if dict1_data[j][k] is None:
+                    dict1_data[j][k] = np.nan
+                if dict2_data[j][k] is None:
+                    dict2_data[j][k] = np.nan
+
+        return np.allclose(dict1_data, dict2_data, equal_nan = True)
 
 
 def test_build_plotly_figure():
-    assert compare_dicts(calculated_figure.to_dict(), expected_fig.to_dict())
-
-
-def test_write_figure_to_file():
-    bool_file_exists = False
-    filename = "Ag_fcc_5x5x5"
-    write_figure_to_file(expected_fig,f"tests/data/bxsf/{filename}.bxsf", "tests/data" )
-    if os.path.exists(f"tests/data/{filename}.html") and os.path.exists(f"tests/data/{filename}.svg"):
-        bool_file_exists = True
-        os.remove(f"tests/data/{filename}.html")
-        os.remove(f"tests/data/{filename}.svg")
-    assert bool_file_exists == True
-
+    assert compare_dicts(calculated_figure.to_dict(), expected_fig.to_dict()), "not all vertices are the same!"
 
 

@@ -134,6 +134,10 @@ class FermiSurface:
         :return: the higher resolution triangle mesh
         """
 
+        if self.surface is None:
+            raise ValueError("surface is not yet defined")
+
+
         vertices = self.surface.vertices
         faces = self.surface.faces
 
@@ -156,6 +160,11 @@ class FermiSurface:
         :param face_percentage: targeted face percentage
         :return: self
         """
+
+        if self.surface is None:
+            raise ValueError("surface is not yet defined")
+
+
         if face_percentage == 100 and face_numbers is None:
             return self
         vertices = self.surface.vertices
