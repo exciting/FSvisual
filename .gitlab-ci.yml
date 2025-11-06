@@ -1,4 +1,4 @@
-image: python:3.11
+image: pymesh/pymesh:py3.7-slim
 
 stages:
   - test
@@ -6,7 +6,6 @@ stages:
 full_test:
   stage: test
   before_script:
-    -
     - apt-get update && apt-get install -y libgl1
     - pip3 install --upgrade pip
     - pip3 install pytest
