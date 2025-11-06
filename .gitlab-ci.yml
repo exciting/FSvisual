@@ -1,4 +1,4 @@
-image: cnristi/pymeshlab:latest
+image: pymesh/pymesh:latest
 
 stages:
   - test
