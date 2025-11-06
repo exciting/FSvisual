@@ -6,7 +6,7 @@ stages:
 full_test:
   stage: test
   before_script:
-    - apt-get update && apt-get install libgl1
+    - apt-get update && apt-get install -y libgl1
     - pip3 install --upgrade pip
     - pip3 install pytest
     - pip3 install .
