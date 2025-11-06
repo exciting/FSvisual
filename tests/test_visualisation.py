@@ -17,7 +17,7 @@ with open("tests/data/visualisation/figure.json", "r") as f:
 expected_fig = io.from_json(expected_fig_json)
 
 
-def compare_dicts(dict1, dict2):
+def compare_vertices_dicts(dict1, dict2):
 
     if dict1.keys() != dict2.keys():    # needs to be refined
         return False
@@ -36,6 +36,6 @@ def compare_dicts(dict1, dict2):
 
 
 def test_build_plotly_figure():
-    assert compare_dicts(calculated_figure.to_dict(), expected_fig.to_dict()), "not all vertices are the same!"
+    assert compare_vertices_dicts(calculated_figure.to_dict(), expected_fig.to_dict()), "not all vertices are the same!"
 
 
