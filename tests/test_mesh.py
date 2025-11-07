@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 
-from fsvisual.mesh_algorithms import (create_cartesian_mesh, triangulate_faces, abs_vect,
-                                      triangle_area, triangle_center, face_center_BZ)
+from fsvisual.mesh import (create_cartesian_mesh, triangulate_faces, abs_vect,
+                           triangle_area, triangle_center, face_center_BZ)
 
 
 meshes = np.load("tests/data/mesh_algorithms/cartesian_meshes.npz")

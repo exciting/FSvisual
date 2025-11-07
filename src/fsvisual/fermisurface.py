@@ -1,7 +1,7 @@
 from .input import read_energy_numbers
 from .brillouin_zone import first_bz
 from .visualisation import build_plotly_figure, write_figure_to_file
-from .mesh_algorithms import create_cartesian_mesh, face_center_BZ
+from .mesh import create_cartesian_mesh, face_center_BZ
 from skimage import measure
 import numpy as np
 import trimesh
