@@ -6,20 +6,10 @@ stages:
 full_test:
   stage: test
   before_script:
-
-    - apt-get update -qq && apt-get install -qq build-essential cmake git wget libglu1-mesa-dev libglew-dev libqt5opengl5-dev qtbase5-dev qt5-qmake libeigen3-dev libcgal-dev
-
-
-    - git clone --recursive https://github.com/cnr-isti-vclab/meshlab.git
-    - cd meshlab
-    - mkdir build && cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DENABLE_CGAL=ON -DENABLE_OPENMP=ON ..
-    - make -j$(nproc)
-    - make install
-
-    - apt-get update && apt-get install -y libgl1
+    - apt-get update && apt-get -q install -y libgl1 libopengl-dev
     - pip3 install --upgrade pip
     - pip3 install pytest
     - pip3 install .
+
   script:
     - pytest -vv tests
