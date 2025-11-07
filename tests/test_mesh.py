@@ -27,7 +27,7 @@ def test_mesh_calculation(calculated_mesh, expected_mesh):
 
 def test_triangulate_faces(bz_faces):
     expected_triangulated_faces = np.load("tests/data/mesh_algorithms/output_triangulate_faces.npz")
-    bz_faces.append(np.array([[0,1,1], [0,0,2], [0,3,3]]))  # to get 100% testing coverage
+    bz_faces.append(np.array([[0,1,1], [0,0,2], [0,3,3]]))  # added to test case of facet with 3 vertices
     bz_faces.append(np.array([[0, 1, 1], [0, 0, 2], [0, 3, 3], [5,4,3]]))
     calculated_triangle_faces = np.array(triangulate_faces(bz_faces))
     assert np.allclose(calculated_triangle_faces, expected_triangulated_faces.f.faces)
