@@ -8,6 +8,14 @@ file format. Those visualizations can be accessed via any web browser,
 as shown in the image below with the Fermi surface of Be as an example.
 
 ![Fermi surface visualization of Be by FSvisual](images/Be_fermi_surface.png)
+<div style="width: 100%; max-width: 1000px; margin: 0 auto;">
+  <img
+    src="images/Be_fermi_surface.png"
+    alt="Fermi surface visualization of Be by FSvisual"
+    style="width: 100%; height: auto; display: block;"
+  >
+</div>
+
 
 The significance of Fermi surfaces arises from a fundamental physical principle:
 Only energy states in close proximity to the Fermi surface can actively participate
@@ -80,8 +88,14 @@ the first Brillouin zone as well as the different surface parts
 that are contributions from different energy bands to the Fermi
 surface. This functionality is illustrated in the image below.
 
-![Illustrates the functionality to show and hide surface 
-parts as well as the first Brillouing zone with the Legend](images/FSvisual_demo.png)
+<div style="width: 100%; max-width: 1000px; margin: 0 auto;">
+  <img
+    src="images/FSvisual_demo.png"
+    alt="Illustrates the functionality to show and hide surface 
+parts as well as the first Brillouin zone with the Legend"
+    style="width: 100%; height: auto; display: block;"
+  >
+</div>
 
 ## Dependencies
 
