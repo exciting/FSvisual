@@ -70,7 +70,7 @@ def abs_vect(vector):
 def triangle_area(triangle):
     """
     calculates the area of a triangle via vertices
-    :param triangle: list of 3 vertices
+    :param triangle: list of 3 3D vertices
     :return: area of a triangle in FE
     """
 

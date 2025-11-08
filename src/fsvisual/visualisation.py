@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import os
 import kaleido
-kaleido.get_chrome_sync()
+#kaleido.get_chrome_sync()
 
 
 def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
@@ -53,20 +53,6 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
     fig_data.extend(mesh_fermi_surfaces)
 
     fig = go.Figure(data=fig_data)
-
-    # Define the layout of the plot
-    fig.update_layout(
-        scene=dict(
-            xaxis_title='kx',
-            yaxis_title='ky',
-            zaxis_title='kz',
-            aspectmode='cube'
-        )
-
-    )
-
-    # Show the plot
-    # axis ranges
 
     fig.update_layout(
         scene=dict(

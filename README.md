@@ -7,8 +7,15 @@ visualizations on a 2D screen as an <span style="font-family: monospace; font-we
 file format. The visualizations are interactive and can be viewed in any modern web browser,
 as shown in the image below with the Fermi surface of Be as an example.
 
+![Fermi surface visualization of Be by FSvisual](images/Be_fermi_surface.png)
+<div style="width: 100%; max-width: 1000px; margin: 0 auto;">
+  <img
+    src="images/Be_fermi_surface.png"
+    alt="Fermi surface visualization of Be by FSvisual"
+    style="width: 100%; height: auto; display: block;"
+  >
+</div>
 
-<img style= "display: block; margin-left: auto; margin-right: auto; width: 50%;" src="images/Be_fermi_surface.png" alt="Fermi surface visualization of Be by FSvisual" >
 
 The significance of Fermi surfaces arises from a fundamental physical principle:
 Only energy states in close proximity to the Fermi surface can actively participate
@@ -82,8 +89,14 @@ the first Brillouin zone as well as the different surface parts
 that are contributions from different energy bands to the Fermi
 surface. This functionality is illustrated in the image below.
 
-<img style="display: block; margin-left: auto; margin-right: auto; width: 70%;" src="images/FSvisual_demo.png" alt="Illustrates the functionality to show and hide surface parts as well as the first Brillouin zone with the Legend" >
-
+<div style="width: 100%; max-width: 1000px; margin: 0 auto;">
+  <img
+    src="images/FSvisual_demo.png"
+    alt="Illustrates the functionality to show and hide surface 
+parts as well as the first Brillouin zone with the Legend"
+    style="width: 100%; height: auto; display: block;"
+  >
+</div>
 
 ## Dependencies
 

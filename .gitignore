@@ -1,2 +1,8 @@
 __pycache__
 *.bxsf
+src/fsvisual.egg-info/*
+.coverage
+/coverage.xml
+.idea
+/dist/
+

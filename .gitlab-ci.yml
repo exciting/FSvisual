@@ -1,0 +1,15 @@
+image: python:3.11
+
+stages:
+  - test
+
+full_test:
+  stage: test
+  before_script:
+    - apt-get update && apt-get -q install -y libgl1 libopengl-dev
+    - pip3 install --upgrade pip
+    - pip3 install pytest
+    - pip3 install .
+
+  script:
+    - pytest -vv tests
