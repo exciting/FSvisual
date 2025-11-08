@@ -7,7 +7,7 @@ visualizations on a 2D screen as an <span style="font-family: monospace; font-we
 file format. The visualizations are interactive and can be viewed in any modern web browser,
 as shown in the image below with the Fermi surface of Be as an example.
 
-![Fermi surface visualization of Be by FSvisual](images/Be_fermi_surface.png)
+
 <div style="width: 100%; max-width: 1000px; margin: 0 auto;">
   <img
     src="images/Be_fermi_surface.png"
