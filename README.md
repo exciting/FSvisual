@@ -3,8 +3,8 @@ FSvisual is a software tool to visualize **Fermi surfaces**—the boundaries
 between occupied and unoccupied electronic states in metals.
 
 It is capable of creating interactive 3D Fermi surface 
-visualizations on a 2D screen as an <span style="font-family: monospace; font-weight: bold;">html</span> 
-file format. Those visualizations can be accessed via any web browser,
+visualizations on a 2D screen as an <span style="font-family: monospace; font-weight: bold;">html</span>
+file format. The visualizations are interactive and can be viewed in any modern web browser,
 as shown in the image below with the Fermi surface of Be as an example.
 
 ![Fermi surface visualization of Be by FSvisual](images/Be_fermi_surface.png)
@@ -27,7 +27,8 @@ and magnetic properties.
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
-- [Dependencies](#Dependencies)
+- [Dependencies](#dependencies)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
@@ -75,7 +76,7 @@ options:
 ```
 Once the Fermi surfaces of interest are visualized and opened 
 in a web browser of choice, the camera view of every surface 
-created by FSvisual can be rotated by holding the left 
+can be rotated by holding the left 
 mouse button and dragging the cursor in the desired 
 direction. Holding the right mouse button (or
 pressing the control key on the keyboard + left mouse button) locks the vertical
@@ -114,6 +115,9 @@ parts as well as the first Brillouin zone with the Legend"
 | `plotly`  | ≥ 6.3.0   | [plotly.com](https://plotly.com/python/)                                     |
 | `shapely`| ≥ 2.1.1  | [shapely](https://github.com/shapely/shapely)                                |
 | `kaleido`  | ≥ 1.0.0   | [kaleido](https://pypi.org/project/kaleido/)                                        |
+
+## Contributing
+Pull requests are welcome! For major changes, please open an issue first.
 
 
 ## License
