@@ -1,5 +1,5 @@
 # FSvisual
-FSvisual is a software tool to visualize **Fermi surfaces**—the boundaries 
+`FSvisual` is a software tool to visualize **Fermi surfaces**—the boundaries 
 between occupied and unoccupied electronic states in metals.
 
 It is capable of creating interactive 3D Fermi surface 
@@ -11,7 +11,7 @@ as shown in the image below with the Fermi surface of Be as an example.
 <div style="width: 100%; max-width: 1000px; margin: 0 auto;">
   <img
     src="images/Be_fermi_surface.png"
-    alt="Fermi surface visualization of Be by FSvisual"
+    alt="Fermi surface visualization of Be by `FSvisual`"
     style="width: 100%; height: auto; display: block;"
   >
 </div>
@@ -32,15 +32,68 @@ and magnetic properties.
 - [License](#license)
 
 ## Installation
+
+### Install `FSvisual` with git
+
+First, make sure `git` and `python3` are installed.
+If so, we now start by cloning the `FSvisual` repository to a local directory (a folder on your system).
+You now have to choose a folder to store the repository. Move to that location with the `cd` command. Once you arrived at the desired location, paste the command 
+
+```bash
+git clone https://git.physik.hu-berlin.de/stutzjan/fsvisual
+```
+
+and it enter. Now move into the newly created folder `FSvisual` with `cd fsvisual`.
+
+Now we create a virtual environment in which we install `FSvisual`:
+
+```bash
+python3 -m venv fsvisual_env
+```
+
+If this is done, we also habe to activate the environment.
+
+```bash
+source fsvisual_env/bin/activate
+```
+
+*If active, deactivate other active environments.*
+
+With the virtual environment set up, we can now install `FSvisual` by pasting
+
+```bash
+pip install .
+```
+
+into your console.
+
+When the installation is finished, try whether everything works with the command
+
+```bash
+fsvisul --help
+```
+
+If everything was successful, you should see every possible CLI command of `FSvisual` with a short explanation.
+
+Note:
+Since `FSvisual` is installed in the newly created virtual environment, it only works when tis environment is active.
+So the command 
+
+```bash
+source fsvisual_env/bin/activate
+```
+
+has to be run whenever you want to use `FSvisual`.
+
 ## Usage
-After the installation, **FSvisual** can be launched via a command line
+After the installation, `FSvisual` can be launched via a command line
 interface (CLI) by typing the command `fsvisual` into your console. 
-**FSvisual** requires you to provide a directory or file path to your
-Fermi surface file/files. Currently, **FSvisual** only supports Fermi surface
-data in the **.bxsf** file format, which was established by visualization
+`FSvisual` requires you to provide a directory or file path to your
+Fermi surface file/files. Currently, `FSvisual` only supports Fermi surface
+data in the `.bxsf` file format, which was established by visualization
 software XCrySDen and is now widely adopted by software supporting 
 Fermi surface calculation, including <span style="font-family: monospace; font-weight: bold;">exciting</span>.
-In the following you can find an example on how to correctly call FSvisual 
+In the following you can find an example on how to correctly call `FSvisual`
 together with one of its optional arguments.
 
 ```bash
@@ -123,8 +176,3 @@ Pull requests are welcome! For major changes, please open an issue first.
 ## License
 This project is licensed under the 
 [GNU General Public License](LICENSE).
-
-**References:** 
-
-Stutz, J. (2025). *Visualization of Fermi Surfaces
-for Large-Scale Databases* [Bachelor’s thesis, Humboldt Universität zu Berlin].
