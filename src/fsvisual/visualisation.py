@@ -3,7 +3,9 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import os
 import kaleido
-#kaleido.get_chrome_sync()
+from networkx.algorithms.bipartite.matching import maximum_matching
+
+kaleido.get_chrome_sync()
 
 
 def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
@@ -38,6 +40,23 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
     y = brillouin_zone_object[0][1]
     z = brillouin_zone_object[0][2]
 
+    # find highest and lowest point of BZ for axis scaling:
+
+    # filter non values and find maximum on each axis
+    max_x = np.max([np.abs(num) for num in x if num is not None])
+    max_y = np.max([np.abs(num) for num in y if num is not None])
+    max_z = np.max([np.abs(num) for num in z if num is not None])
+
+    # calculate global maximum
+    max_value_axis = np.max([max_x, max_y, max_z])
+
+
+    if max_value_axis > 0:
+        max_value_axis += 1/10*max_value_axis
+    else:
+        max_value_axis -= 1/10*max_value_axis
+
+
     # Create a 3D scatter plot
     scatter_BZ = go.Scatter3d(
         x=x,
@@ -45,7 +64,7 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
         z=z,
         mode='lines',
         name="1. BZ",
-        line=dict(color='black', width=2)
+        line=dict(color='black', width=6)
     )
 
     # contains all
@@ -55,10 +74,20 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
     fig = go.Figure(data=fig_data)
 
     fig.update_layout(
+
         scene=dict(
-            xaxis=dict(visible=False),
-            yaxis=dict(visible=False),
-            zaxis=dict(visible=False),
+            xaxis=dict(
+                range=[-max_value_axis, max_value_axis],  # Fester Bereich für x-Achse
+                visible=False
+            ),
+            yaxis=dict(
+                range=[-max_value_axis, max_value_axis],  # Fester Bereich für y-Achse
+                visible=False
+            ),
+            zaxis=dict(
+                range=[-max_value_axis, max_value_axis],  # Fester Bereich für z-Achse
+                visible=False
+            ),
             annotations=[],  # Remove any annotations if present
             aspectmode='cube',
             camera=dict(

@@ -59,7 +59,8 @@ def main():
             raise ValueError("subdivision_surface and downsampling_surface are contrary functions")
 
         new_fermisurface.build_surface_with_bxsf_files(filepath, args.subdivision_surface,
-                                                       args.downsampling_surface_percentage, args.downsampling_surface_face)
+                                                       args.downsampling_surface_percentage,
+                                                       args.downsampling_surface_face)
 
         new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG)
 
