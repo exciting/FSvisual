@@ -5,9 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fsvisual"
 version = "0.0.1"
+
 authors = [
-  { name="Jan Stutz", email="stutzjan@physik.hu-berlin.de" },
+  { name="FSvisual developers"}
 ]
+
+maintainers =  [
+    {name ="Jan Stutz", email = "stutzjan@physik.hu-berlin.de"},
+    {name="Martin Kuban", email = "kuban@physik.hu-berlin.de"}
+]
+
 description = "A Fermi surface visualization package"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -44,5 +51,5 @@ dev = [
 fsvisual = "fsvisual.cli:main"
 
 [project.urls]
-Homepage = "https://git.physik.hu-berlin.de/stutzjan/bachelorarbeit/"
-Issues = "https://git.physik.hu-berlin.de/stutzjan/bachelorarbeit/-/issues"
+Homepage = "https://github.com/exciting/FSVisual"
+Issues = "https://github.com/exciting/FSVisual/-/issues"
