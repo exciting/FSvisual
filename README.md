@@ -70,7 +70,7 @@ into your console.
 When the installation is finished, try whether everything works with the command
 
 ```bash
-fsvisul --help
+fsvisual --help
 ```
 
 If everything was successful, you should see every possible CLI command of `FSvisual` with a short explanation.
