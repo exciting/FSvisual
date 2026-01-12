@@ -34,13 +34,13 @@ def main():
     file_list = []
     if os.path.isfile(args.bxsf_files_directory):
         file_list.append(os.path.basename(args.bxsf_files_directory))
-        path = os.path.dirname(args.bxsf_files_directory)
+        path = os.path.abspath(os.path.dirname(args.bxsf_files_directory))
         if args.save_fermisurfaces is not None:
             save_path = args.save_fermisurfaces
         else:
             save_path = path
     else:
-        file_list.extend(os.listdir(args.bxsf_files_directory))
+        file_list.extend(file_ for file_ in os.listdir(args.bxsf_files_directory) if file_.endswith('.bxsf'))
         path = args.bxsf_files_directory
         if args.save_fermisurfaces is not None:
             save_path = args.save_fermisurfaces
