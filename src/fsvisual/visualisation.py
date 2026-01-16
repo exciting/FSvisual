@@ -3,9 +3,6 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import os
 import kaleido
-from networkx.algorithms.bipartite.matching import maximum_matching
-
-kaleido.get_chrome_sync()
 
 
 def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
@@ -118,6 +115,7 @@ def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
                    config={'displayModeBar': False})
 
     if create_SVG:
+        kaleido.get_chrome_sync()
         if scene_camera_SVG is None:
             scene_camera_SVG = dict(eye=dict(x=1, y=1, z=1))
         fig.update_layout(
