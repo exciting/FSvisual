@@ -36,7 +36,26 @@ and magnetic properties.
 ### Installation using pip (recommended!)
 
 First make sure that `pip` and `python3` are installed.
-If so, simply go to your console and type the following:
+
+It is good practice to install software like `FSvisual` in a 
+dedicated python environment, which we will create now:
+
+Go use cd commands to move to a desired directory on your device for the installation, then enter
+
+```bash
+python3 -m venv fsvisual_env
+```
+*The environment name fsvisual_env can freely be chosen to another name!* 
+
+Next, we need to activate the environment, which needs to be done each time `FSvisual` is being used: 
+
+```bash
+source fsvisual_env/bin/activate
+```
+*This is the path from the directory where the environment was created in. If you are in a different directory you 
+first have to move back!* 
+
+Now, we are all set for the installation of `FSvisual`:
 
 ```bash
 pip install fsvisual
