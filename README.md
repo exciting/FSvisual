@@ -33,7 +33,16 @@ and magnetic properties.
 
 ## Installation
 
-### Install `FSvisual` with git
+### Installation using pip (recommended!)
+
+First make sure that `pip` and `python3` are installed.
+If so, simply go to your console and type the following:
+
+```bash
+pip install fsvisual
+```
+
+### Installation in dedicated python environment using git 
 
 First, make sure `git` and `python3` are installed.
 If so, we now start by cloning the `FSvisual` repository to a local directory (a folder on your system).
@@ -43,21 +52,21 @@ You now have to choose a folder to store the repository. Move to that location w
 git clone https://git.physik.hu-berlin.de/stutzjan/fsvisual
 ```
 
-and it enter. Now move into the newly created folder `FSvisual` with `cd fsvisual`.
+and hit enter. Now move into the newly created folder `FSvisual` with `cd fsvisual`.
 
-Now we create a virtual environment in which we install `FSvisual`:
+Next, we create a virtual environment in which we install `FSvisual`:
 
 ```bash
 python3 -m venv fsvisual_env
 ```
 
-If this is done, we also habe to activate the environment.
+After creation, we also have to activate the environment.
 
 ```bash
 source fsvisual_env/bin/activate
 ```
 
-*If active, deactivate other active environments.*
+*deactivate other active environments if there are any.*
 
 With the virtual environment set up, we can now install `FSvisual` by pasting
 
@@ -65,19 +74,23 @@ With the virtual environment set up, we can now install `FSvisual` by pasting
 pip install .
 ```
 
-into your console.
+into the console.
 
-When the installation is finished, try whether everything works with the command
+Note:
+Since `FSvisual` is installed in the newly created virtual environment, it only works when this environment is active.
+So the command 
+
+### Post Installation
+When the installation is finished, check if `FSvisual` is working using the command
 
 ```bash
 fsvisual --help
 ```
 
-If everything was successful, you should see every possible CLI command of `FSvisual` with a short explanation.
+If everything was successful, you should see every possible CLI command of `FSvisual` with a short explanation printed 
+to the console.
 
-Note:
-Since `FSvisual` is installed in the newly created virtual environment, it only works when tis environment is active.
-So the command 
+
 
 ```bash
 source fsvisual_env/bin/activate
