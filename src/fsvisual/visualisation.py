@@ -5,12 +5,13 @@ import os
 import kaleido
 
 
-def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
+def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index, width_line_BZ):
     """
     to build the Fermi surface as a 3D interactive plotly figure
     :param fermi_surface_list: list of all surface parts of the Fermi surface
     :param brillouin_zone_object: the brillouin zone object created with the compute_brillouin_zone from FSvisual
     :param band_index: list of band indices corresponding to each surface part
+    :param width_line_BZ: width of the Brillouin zone lines
     :return: the plotly figure
     """
     mesh_fermi_surfaces = []
@@ -61,7 +62,7 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index):
         z=z,
         mode='lines',
         name="1. BZ",
-        line=dict(color='black', width=6)
+        line=dict(color='black', width=width_line_BZ)
     )
 
     # contains all

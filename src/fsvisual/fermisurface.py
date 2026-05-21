@@ -239,13 +239,14 @@ class FermiSurface:
             self.band_index.append(index + 1)  # for the plot
         return self
 
-    def visualization(self, filepath, save_fermisurf_path, svg=False):
+    def visualization(self, filepath, save_fermisurf_path, svg=False, width_line_bz=2):
         """
         Visualizes the Fermi surface as a 3D interactive plot saved as an html file. Also allows for creating
         an SVG Image of the Fermi surface along the html file.
         :param filepath: path to bxsf file.
         :param save_fermisurf_path: directory where the created files and imaged will be stored
         :param svg: boolean whether to create the SVG image
+        :param width_line_bz: width of the Brillouin zone lines
         """
-        figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index)
+        figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index, width_line_bz)
         write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=svg)

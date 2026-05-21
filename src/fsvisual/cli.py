@@ -24,8 +24,15 @@ def main():
                                                             "Fermi surface mesh (number of faces) to a given face number",
                         default=None, type=int)
 
+    parser.add_argument("-wl","--width_line_BZ", help="adjusts the width of the Brillouin zone lines ",
+                        default=2, type=int)
 
-    parser.add_argument("-c","--create_SVG", help="boolean whether to create SVG files ",
+    parser.add_argument("-c", "--create_SVG", help="boolean whether to create SVG files ",
+                        action="store_true")
+
+    parser.add_argument("-f", "--force", help="if bandstructure files do not end with .bxsf, but "
+                                              "are still correctly formatted, forcing FSvisual "
+                                              "to parse those files is possible ",
                         action="store_true")
 
     args = parser.parse_args()
@@ -40,7 +47,7 @@ def main():
         else:
             save_path = path
     else:
-        file_list.extend(file_ for file_ in os.listdir(args.bxsf_files_directory) if file_.endswith('.bxsf'))
+        file_list.extend(file_ for file_ in os.listdir(args.bxsf_files_directory) if (file_.endswith('.bxsf')) or args.force)
         path = args.bxsf_files_directory
         if args.save_fermisurfaces is not None:
             save_path = args.save_fermisurfaces
@@ -62,7 +69,7 @@ def main():
                                                        args.downsampling_surface_percentage,
                                                        args.downsampling_surface_face)
 
-        new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG)
+        new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG, width_line_bz=args.width_line_BZ)
 
 if __name__ == "__main__":
     main()
