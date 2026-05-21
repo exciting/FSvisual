@@ -11,7 +11,7 @@ rez_lattice = [[0.8152569492, 0.8152569492, -0.8152569492], [0.8152569492, -0.81
                [-0.8152569492, 0.8152569492 , 0.8152569492]]
 brillouin_zone_obj = first_bz(rez_lattice)
 
-calculated_figure = build_plotly_figure([surface_list], brillouin_zone_obj, band_index=[4])
+calculated_figure = build_plotly_figure([surface_list], brillouin_zone_obj, band_index=[4], width_line_BZ=2)
 with open("tests/data/visualisation/figure.json", "r") as f:
     expected_fig_json = json.load(f)
 expected_fig = io.from_json(expected_fig_json)
