@@ -138,8 +138,8 @@ along with an explanation on how to use them:
 
 
 ```
-usage: fsvisual [-h] [-sf SAVE_FERMISURFACES] [-s SUBDIVISION_SURFACE] [-dp DOWNSAMPLING_SURFACE_PERCENTAGE]
-                [-df DOWNSAMPLING_SURFACE_FACE] [-c]
+usage: fsvisual [-h] [-sf SAVE_FERMISURFACES] [-s SUBDIVISION_SURFACE] [-dp DOWNSAMPLING_SURFACE_PERCENTAGE] [-df DOWNSAMPLING_SURFACE_FACE]
+                [-wl WIDTH_LINE_BZ] [-c] [-f]
                 bxsf_files_directory
 
 positional arguments:
@@ -147,17 +147,19 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  -sf SAVE_FERMISURFACES, --save_fermisurfaces SAVE_FERMISURFACES
+  -sf, --save_fermisurfaces SAVE_FERMISURFACES
                         directory where visualized Fermi surfaces are stored
-  -s SUBDIVISION_SURFACE, --subdivision_surface SUBDIVISION_SURFACE
-                        divides every triangle of the Fermi surface mesh into two triangles; executes as many times as
-                        the input says
-  -dp DOWNSAMPLING_SURFACE_PERCENTAGE, --downsampling_surface_percentage DOWNSAMPLING_SURFACE_PERCENTAGE
-                        lowers the resolution of the Fermi surface mesh (number of faces) to a given percentage (from
-                        original face count)
-  -df DOWNSAMPLING_SURFACE_FACE, --downsampling_surface_face DOWNSAMPLING_SURFACE_FACE
+  -s, --subdivision_surface SUBDIVISION_SURFACE
+                        divides every triangle of the Fermi surface mesh into two triangles; executes as many times as the input says
+  -dp, --downsampling_surface_percentage DOWNSAMPLING_SURFACE_PERCENTAGE
+                        lowers the resolution of the Fermi surface mesh (number of faces) to a given percentage (from original face count)
+  -df, --downsampling_surface_face DOWNSAMPLING_SURFACE_FACE
                         lowers the resolution of the Fermi surface mesh (number of faces) to a given face number
-  -c, --create_SVG      boolean whether to create SVG files 
+  -wl, --width_line_BZ WIDTH_LINE_BZ
+                        adjusts the width of the Brillouin zone lines
+  -c, --create_SVG      boolean whether to create SVG files
+  -f, --force           if bandstructure files do not end with .bxsf, but are still correctly formatted, forcing FSvisual to parse those files is
+                        possible
 ```
 Once the Fermi surfaces of interest are visualized and opened 
 in a web browser of choice, the camera view of every surface 
