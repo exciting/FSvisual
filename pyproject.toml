@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fsvisual"
-version = "0.0.1"
+version = "0.0.2"
 
 authors = [
   { name="FSvisual developers"}
@@ -28,7 +28,8 @@ dependencies = [
     "pymatgen >= 2025.6.14",
     "plotly >= 6.3.0",
     "shapely >= 2.1.1",
-    "kaleido >= 1.0.0"
+    "kaleido >= 1.0.0",
+    "rich >= 15.0.0"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

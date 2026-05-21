@@ -1,6 +1,7 @@
 from .fermisurface import FermiSurface
 import os
 import argparse
+from rich import print as rprint
 
 def main():
     parser = argparse.ArgumentParser()
@@ -54,6 +55,11 @@ def main():
         else:
             save_path = args.bxsf_files_directory
 
+    if len(file_list) == 1:
+        rprint("[bold red]Error![/bold red] [green]Success[/green]")
+    else:
+        print(" ")
+
     for filename in file_list:
         filepath = os.path.join(path, filename)
         # check if path leads to file
@@ -70,6 +76,7 @@ def main():
                                                        args.downsampling_surface_face)
 
         new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG, width_line_bz=args.width_line_BZ)
+        print("done")
 
 if __name__ == "__main__":
     main()
