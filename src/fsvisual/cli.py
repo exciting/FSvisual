@@ -2,6 +2,8 @@ from .fermisurface import FermiSurface
 import os
 import argparse
 from rich import print as rprint
+from rich.progress import Progress
+import time
 
 def main():
     parser = argparse.ArgumentParser()
@@ -40,6 +42,7 @@ def main():
 
     # you can either parse a whole directory of .bxsf files or just the path to a single .bxsf file
     file_list = []
+    is_directory = False
     if os.path.isfile(args.bxsf_files_directory):
         file_list.append(os.path.basename(args.bxsf_files_directory))
         path = os.path.abspath(os.path.dirname(args.bxsf_files_directory))
@@ -48,6 +51,7 @@ def main():
         else:
             save_path = path
     else:
+        is_directory = True
         file_list.extend(file_ for file_ in os.listdir(args.bxsf_files_directory) if (file_.endswith('.bxsf')) or args.force)
         path = args.bxsf_files_directory
         if args.save_fermisurfaces is not None:
@@ -55,28 +59,43 @@ def main():
         else:
             save_path = args.bxsf_files_directory
 
-    if len(file_list) == 1:
-        rprint("[bold red]Error![/bold red] [green]Success[/green]")
+    if len(file_list) == 1 and not is_directory:
+        rprint("Starting visualization of Fermi surface...")
+    elif len(file_list) >= 1:
+        rprint(f"Starting visualization of {len(file_list)} Fermi surfaces...")
     else:
-        print(" ")
+        rprint(f"[yellow]No suitable files where found in {args.bxsf_files_directory}[/yellow]")
 
-    for filename in file_list:
+    for i, filename in enumerate(file_list):
         filepath = os.path.join(path, filename)
         # check if path leads to file
         if not os.path.isfile(filepath):
             continue
 
-        new_fermisurface = FermiSurface()
+        process_string = ""
 
-        if args.subdivision_surface != 0 and args.downsampling_surface != 100:
-            raise ValueError("subdivision_surface and downsampling_surface are contrary functions")
+        if len(file_list) == 1:
+            process_string = "Processing..."
+            #process_string = "Test Processing..."   
+        else:
+            process_string = f"[{i+1}/{len(file_list)}] Processing..."
 
-        new_fermisurface.build_surface_with_bxsf_files(filepath, args.subdivision_surface,
-                                                       args.downsampling_surface_percentage,
-                                                       args.downsampling_surface_face)
+        with Progress() as progress:
+            task = progress.add_task(process_string, total=100)
 
-        new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG, width_line_bz=args.width_line_BZ)
-        print("done")
+            new_fermisurface = FermiSurface()
+            progress.update(task, advance=10)
+
+            if args.subdivision_surface != 0 and args.downsampling_surface != 100:
+                raise ValueError("subdivision_surface and downsampling_surface are contrary functions")
+
+            new_fermisurface.build_surface_with_bxsf_files(filepath, progress, task, args.subdivision_surface,
+                                                        args.downsampling_surface_percentage,
+                                                        args.downsampling_surface_face)
+
+            new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG, width_line_bz=args.width_line_BZ)
+            progress.update(task, advance=10)
+            rprint("[green]Successfully created visualization![/green]")
 
 if __name__ == "__main__":
     main()

@@ -6,6 +6,7 @@ from skimage import measure
 import numpy as np
 import trimesh
 import pymeshlab
+from rich.progress import Progress
 
 
 class FermiSurface:
@@ -190,7 +191,7 @@ class FermiSurface:
 
         return self
 
-    def build_surface_with_bxsf_files(self, filepath, subdivide_iterations=0, down_sampling_percentage=100,
+    def build_surface_with_bxsf_files(self, filepath, progress, task, subdivide_iterations=0, down_sampling_percentage=100,
                                       downsampling_surface_face=None):
         """
         whole fermi surface construction process for bxsf files, including reading out the input data, building the
@@ -202,19 +203,26 @@ class FermiSurface:
         :return: self
         """
 
+    
         data = read_energy_numbers(filepath)
+        progress.update(task, advance=30)
         self.set_energy_values(data[0])
         self.set_fermi_energy(data[1])
         self.set_rez_base_vect(data[2])
         self.set_k_grid_by_size(data[3])
 
+        
+
         self.compute_brillouin_zone()
+        progress.update(task, advance=2)
 
         grid_size = self.grid_size
         new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
-
+        progress.update(task, advance=3)
         self.band_index = []
         self.fermi_surface_list = []
+
+        runs_normalzed = len(self.energy_values.columns)
         for index, columnName in enumerate(self.energy_values.columns):
 
             # Apply the Marching Cubes algorithm
@@ -223,9 +231,13 @@ class FermiSurface:
             except ValueError:
                 continue
 
+            progress.update(task, advance=5/runs_normalzed)
+
 
             self.subdivide_surface(subdivide_iterations)
             self.downsample_surface(face_percentage=down_sampling_percentage,face_numbers=downsampling_surface_face)
+            
+            
 
             # translation and shrinkage
             self.scale_surface(2 / new_basevect_grid_size)
@@ -235,8 +247,11 @@ class FermiSurface:
 
             self.slice_surface()
 
+            progress.update(task, advance=10/runs_normalzed)
+
             self.fermi_surface_list.append(self.surface)
             self.band_index.append(index + 1)  # for the plot
+            progress.update(task, advance=10/runs_normalzed)
         return self
 
     def visualization(self, filepath, save_fermisurf_path, svg=False, width_line_bz=2):
