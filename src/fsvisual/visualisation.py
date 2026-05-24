@@ -99,7 +99,7 @@ def build_plotly_figure(fermi_surface_list, brillouin_zone_object, band_index, w
     return fig
 
 
-def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
+def write_figure_to_file(fig, filepath, save_figure_directory, save_fs, create_SVG=True,
                          scene_camera_SVG=None):
     """
     Function to take a plotly figure and write it to a file with potentially also creating an SVG file.
@@ -112,8 +112,10 @@ def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
 
     filename = os.path.basename(filepath)
     filename = filename.split(".")[0]
-    pio.write_html(fig, file=f'{save_figure_directory}/{filename}.html', auto_open=False,
-                   config={'displayModeBar': False})
+
+    if save_fs:
+        pio.write_html(fig, file=f'{save_figure_directory}/{filename}.html', auto_open=False,
+                       config={'displayModeBar': False})
     if create_SVG:
         kaleido.get_chrome_sync()
         if scene_camera_SVG is None:

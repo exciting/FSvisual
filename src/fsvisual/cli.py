@@ -37,13 +37,22 @@ def main():
                                               "are still correctly formatted, forcing FSvisual "
                                               "to parse those files is possible ",
                         action="store_true")
+
+    parser.add_argument("--dont_save", help="Deactivates saving Fermi surfaces to file",
+                        action="store_false", default=True)
+
     parser.add_argument("--show", help="Fermi surfaces are immediately shown in Browser",
                         action="store_true")
+
     parser.add_argument("--dont_show", help="Deactivates the default, that if only 1 Fermi surface "
                                             "is created, it is always shown in Browser",
                         action="store_false", default=True)
 
+
     args = parser.parse_args()
+
+    if not args.dont_save:
+        args.show = True
 
     # you can either parse a whole directory of .bxsf files or just the path to a single .bxsf file
     file_list = []
@@ -101,7 +110,8 @@ def main():
                                                            args.downsampling_surface_face, progress=progress,
                                                            task=task, timings=timings)
 
-            fig = new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG, width_line_bz=args.width_line_BZ)
+            fig = new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG,
+                                                 width_line_bz=args.width_line_BZ, save_fs=args.dont_save)
             progress.update(task, advance=timings[9])
 
         if (len(file_list) == 1 or args.show) and args.dont_show:
@@ -116,6 +126,8 @@ def main():
 
     if success == len(file_list) and len(file_list) >= 1:
         rprint(f"[green]Created [{success}/{len(file_list)}] visualizations![/green]")
+    elif len(file_list) >= 1 and not args.dont_save:
+        rprint(f"[green]Created [{len(file_list)}/{len(file_list)}] visualizations without saving![/green]")
     elif len(file_list) >= 1:
         rprint(f"[yellow]Created [{success}/{len(file_list)}] visualizations![/yellow]")
 

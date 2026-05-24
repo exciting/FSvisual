@@ -275,7 +275,7 @@ class FermiSurface:
 
         return self
 
-    def visualization(self, filepath, save_fermisurf_path, svg=False, width_line_bz=2):
+    def visualization(self, filepath, save_fermisurf_path, save_fs = True, svg=False, width_line_bz=2):
         """
         Visualizes the Fermi surface as a 3D interactive plot saved as an html file. Also allows for creating
         an SVG Image of the Fermi surface along the html file.
@@ -285,6 +285,6 @@ class FermiSurface:
         :param width_line_bz: width of the Brillouin zone lines
         """
         figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index, width_line_bz)
-        write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=svg)
+        write_figure_to_file(figure, filepath, save_fermisurf_path, save_fs, create_SVG=svg)
 
         return figure
