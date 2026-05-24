@@ -139,7 +139,7 @@ along with an explanation on how to use them:
 
 ```
 usage: fsvisual [-h] [-sf SAVE_FERMISURFACES] [-s SUBDIVISION_SURFACE] [-dp DOWNSAMPLING_SURFACE_PERCENTAGE] [-df DOWNSAMPLING_SURFACE_FACE]
-                [-wl WIDTH_LINE_BZ] [-c] [-f]
+                [-wl WIDTH_LINE_BZ] [-c] [--force] [--show] [--dont_show]
                 bxsf_files_directory
 
 positional arguments:
@@ -158,8 +158,10 @@ options:
   -wl, --width_line_BZ WIDTH_LINE_BZ
                         adjusts the width of the Brillouin zone lines
   -c, --create_SVG      boolean whether to create SVG files
-  -f, --force           if bandstructure files do not end with .bxsf, but are still correctly formatted, forcing FSvisual to parse those files is
+  --force               if bandstructure files do not end with .bxsf, but are still correctly formatted, forcing FSvisual to parse those files is
                         possible
+  --show                Fermi surfaces are immediately shown in Browser
+  --dont_show           Deactivates the default that if only 1 Fermi surface is created, it is always shown in Browser
 ```
 Once the Fermi surfaces of interest are visualized and opened 
 in a web browser of choice, the camera view of every surface 

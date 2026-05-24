@@ -2,7 +2,7 @@ from .fermisurface import FermiSurface
 import os
 import argparse
 from rich import print as rprint
-from rich.progress import Progress
+from rich.progress import Progress, BarColumn, TextColumn, TaskProgressColumn
 import time
 
 def main():
@@ -33,10 +33,15 @@ def main():
     parser.add_argument("-c", "--create_SVG", help="boolean whether to create SVG files ",
                         action="store_true")
 
-    parser.add_argument("-f", "--force", help="if bandstructure files do not end with .bxsf, but "
+    parser.add_argument("--force", help="if bandstructure files do not end with .bxsf, but "
                                               "are still correctly formatted, forcing FSvisual "
                                               "to parse those files is possible ",
                         action="store_true")
+    parser.add_argument("--show", help="Fermi surfaces are immediately shown in Browser",
+                        action="store_true")
+    parser.add_argument("--dont_show", help="Deactivates the default, that if only 1 Fermi surface "
+                                            "is created, it is always shown in Browser",
+                        action="store_false", default=True)
 
     args = parser.parse_args()
 
@@ -66,36 +71,53 @@ def main():
     else:
         rprint(f"[yellow]No suitable files where found in {args.bxsf_files_directory}[/yellow]")
 
+    success = 0
     for i, filename in enumerate(file_list):
         filepath = os.path.join(path, filename)
         # check if path leads to file
         if not os.path.isfile(filepath):
             continue
 
-        process_string = ""
-
         if len(file_list) == 1:
             process_string = "Processing..."
-            #process_string = "Test Processing..."   
+
         else:
             process_string = f"[{i+1}/{len(file_list)}] Processing..."
 
-        with Progress() as progress:
+        fig = 0
+        with Progress(TextColumn("[progress.description]{task.description}"), BarColumn(), TaskProgressColumn()) as progress:
+            timings = [5, 35, 4, 2, 24, 0, 0, 0, 26, 4]
+
             task = progress.add_task(process_string, total=100)
 
             new_fermisurface = FermiSurface()
-            progress.update(task, advance=10)
+
 
             if args.subdivision_surface != 0 and args.downsampling_surface != 100:
                 raise ValueError("subdivision_surface and downsampling_surface are contrary functions")
 
-            new_fermisurface.build_surface_with_bxsf_files(filepath, progress, task, args.subdivision_surface,
-                                                        args.downsampling_surface_percentage,
-                                                        args.downsampling_surface_face)
+            new_fermisurface.build_surface_with_bxsf_files(filepath, args.subdivision_surface,
+                                                           args.downsampling_surface_percentage,
+                                                           args.downsampling_surface_face, progress=progress,
+                                                           task=task, timings=timings)
 
-            new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG, width_line_bz=args.width_line_BZ)
-            progress.update(task, advance=10)
-            rprint("[green]Successfully created visualization![/green]")
+            fig = new_fermisurface.visualization(filepath, save_path, svg=args.create_SVG, width_line_bz=args.width_line_BZ)
+            progress.update(task, advance=timings[9])
+
+        if (len(file_list) == 1 or args.show) and args.dont_show:
+            fig.show()
+
+        filename = os.path.basename(filepath)
+        filename = filename.split(".")[0]
+
+        if os.path.isfile(f'{save_path}/{filename}.html'):
+            rprint("Success!")
+            success += 1
+
+    if success == len(file_list) and len(file_list) >= 1:
+        rprint(f"[green]Created [{success}/{len(file_list)}] visualizations![/green]")
+    elif len(file_list) >= 1:
+        rprint(f"[yellow]Created [{success}/{len(file_list)}] visualizations![/yellow]")
 
 if __name__ == "__main__":
     main()

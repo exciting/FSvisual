@@ -6,7 +6,6 @@ from skimage import measure
 import numpy as np
 import trimesh
 import pymeshlab
-from rich.progress import Progress
 
 
 class FermiSurface:
@@ -191,8 +190,9 @@ class FermiSurface:
 
         return self
 
-    def build_surface_with_bxsf_files(self, filepath, progress, task, subdivide_iterations=0, down_sampling_percentage=100,
-                                      downsampling_surface_face=None):
+    def build_surface_with_bxsf_files(self, filepath, subdivide_iterations=0, down_sampling_percentage=100,
+                                      downsampling_surface_face=None, progress = "not_set", task = "not_set",
+                                      timings = "not_set"):
         """
         whole fermi surface construction process for bxsf files, including reading out the input data, building the
         first brillouin zone and applying the marching cubes' algorithm.
@@ -203,9 +203,14 @@ class FermiSurface:
         :return: self
         """
 
-    
-        data = read_energy_numbers(filepath)
-        progress.update(task, advance=30)
+        progress_tracking = (progress != "not_set" and task != "not_set" and timings != "not_set")
+
+        if progress_tracking:
+            data = read_energy_numbers(filepath, progress, task, timings)
+            progress.update(task, advance=timings[0]+timings[1] - progress.tasks[task].completed)
+        else:
+            data = read_energy_numbers(filepath)
+
         self.set_energy_values(data[0])
         self.set_fermi_energy(data[1])
         self.set_rez_base_vect(data[2])
@@ -214,15 +219,16 @@ class FermiSurface:
         
 
         self.compute_brillouin_zone()
-        progress.update(task, advance=2)
+        if progress_tracking: progress.update(task, advance=timings[2])
 
         grid_size = self.grid_size
         new_basevect_grid_size = np.array([grid_size[0] * 2 - 1, grid_size[1] * 2 - 1, grid_size[2] * 2 - 1])
-        progress.update(task, advance=3)
+        if progress_tracking: progress.update(task, advance=timings[3])
         self.band_index = []
         self.fermi_surface_list = []
 
         runs_normalzed = len(self.energy_values.columns)
+        progress_helper = 0
         for index, columnName in enumerate(self.energy_values.columns):
 
             # Apply the Marching Cubes algorithm
@@ -231,12 +237,20 @@ class FermiSurface:
             except ValueError:
                 continue
 
-            progress.update(task, advance=5/runs_normalzed)
+            if progress_tracking:
+                progress.update(task, advance=timings[4]/runs_normalzed)
+                progress_helper += timings[4]/runs_normalzed
 
 
             self.subdivide_surface(subdivide_iterations)
+
+            if progress_tracking: progress.update(task, advance=timings[5] / runs_normalzed)
+
             self.downsample_surface(face_percentage=down_sampling_percentage,face_numbers=downsampling_surface_face)
-            
+
+            if progress_tracking:
+                progress.update(task, advance=timings[6] / runs_normalzed)
+                progress_helper += timings[5] / runs_normalzed + timings[6] / runs_normalzed
             
 
             # translation and shrinkage
@@ -247,11 +261,18 @@ class FermiSurface:
 
             self.slice_surface()
 
-            progress.update(task, advance=10/runs_normalzed)
+            if progress_tracking:
+                progress.update(task, advance=timings[7]/runs_normalzed)
+                progress_helper += timings[7] / runs_normalzed
 
             self.fermi_surface_list.append(self.surface)
             self.band_index.append(index + 1)  # for the plot
-            progress.update(task, advance=10/runs_normalzed)
+
+            if progress_tracking:
+                progress.update(task, advance=timings[8]/runs_normalzed)
+                progress_helper += timings[8] / runs_normalzed
+        if progress_tracking: progress.update(task, advance=sum(timings[4:9])-progress_helper)
+
         return self
 
     def visualization(self, filepath, save_fermisurf_path, svg=False, width_line_bz=2):
@@ -265,3 +286,5 @@ class FermiSurface:
         """
         figure = build_plotly_figure(self.fermi_surface_list, self.brillouin_zone, self.band_index, width_line_bz)
         write_figure_to_file(figure, filepath, save_fermisurf_path, create_SVG=svg)
+
+        return figure

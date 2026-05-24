@@ -114,7 +114,6 @@ def write_figure_to_file(fig, filepath, save_figure_directory, create_SVG=True,
     filename = filename.split(".")[0]
     pio.write_html(fig, file=f'{save_figure_directory}/{filename}.html', auto_open=False,
                    config={'displayModeBar': False})
-
     if create_SVG:
         kaleido.get_chrome_sync()
         if scene_camera_SVG is None:
